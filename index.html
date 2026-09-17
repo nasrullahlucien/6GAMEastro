@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ASTRO DEEP SPACE: ภารกิจสำรวจเอกภพ (ม.6)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --neon-primary: #06b6d4; /* Cyan 500 */
+            --neon-secondary: #d946ef; /* Fuchsia 500 */
+            --neon-accent: #8b5cf6; /* Violet 500 */
+            --neon-danger: #ef4444; /* Red 500 */
+            --neon-warning: #f59e0b; /* Amber 500 */
+            --bg-dark: #020617; /* Slate 950 */
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--bg-dark); 
+            color: #e2e8f0; 
+            font-family: 'Kanit', sans-serif; 
+            user-select: none; 
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .font-sci { font-family: 'Orbitron', sans-serif; } 
+
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        #ui-layer { 
+            position: relative; 
+            width: 100%; min-height: 100%; z-index: 10; 
+            display: flex; flex-direction: column; 
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .mobile-py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+            .stats-container { flex-wrap: wrap; justify-content: center; gap: 0.5rem !important; }
+            .stats-divider { display: none; }
+            #question-container { padding: 1.5rem !important; margin-top: 1rem !important; }
+            .circular-timer { transform: translateX(0) scale(0.7); left: auto; right: -10px; top: -20px; }
+            #ui-choices { flex-direction: column !important; }
+            .choice-card-v2 { min-height: 70px; padding: 0.75rem !important; }
+        }
+
+        .auth-panel-v2 {
+            background: linear-gradient(135deg, rgba(2, 6, 23, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.15);
+            border-radius: 20px;
+            position: relative;
+        }
+        .auth-panel-v2::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 20px; border: 1px solid rgba(217, 70, 239, 0.3); pointer-events: none;
+        }
+        .auth-input-wrap {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            display: flex; align-items: center;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s;
+        }
+        .auth-input-wrap:focus-within {
+            border-color: var(--neon-primary);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            background: rgba(6, 182, 212, 0.05);
+        }
+        .auth-input-wrap.error { border-color: var(--neon-danger); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: shake 0.4s; }
+        .auth-icon {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(56, 189, 248, 0.5);
+            display: flex; align-items: center; justify-content: center; color: #38bdf8;
+        }
+        .cyber-input-v2 { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-family: 'Orbitron', sans-serif; }
+        .cyber-input-v2::placeholder { color: rgba(148, 163, 184, 0.4); font-family: 'Kanit', sans-serif; letter-spacing: normal;}
+        
+        .btn-auth {
+            background: linear-gradient(90deg, #d946ef, #06b6d4);
+            border-radius: 30px;
+            box-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative; overflow: hidden;
+        }
+        .btn-auth::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: skewX(-20deg); transition: 0.5s;
+        }
+        .btn-auth:hover::after { left: 150%; }
+
+        .typewriter { overflow: hidden; border-right: .15em solid var(--neon-primary); white-space: nowrap; margin: 0 auto; letter-spacing: .1em; animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-primary); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .countdown-pop { animation: pop-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 40% { transform: scale(1.2); opacity: 1; } 60% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .countdown-go { animation: pop-go 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop-go { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 40px var(--neon-primary); } 100% { transform: scale(2); opacity: 0; } }
+
+        .circular-timer { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; z-index: 50; background: conic-gradient(var(--neon-primary) var(--timer-pct, 100%), rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(0,0,0,0.5); border: 4px solid var(--bg-dark); transition: background 1s linear; }
+        .circular-timer::before { content: ""; position: absolute; inset: 4px; background: rgba(15, 23, 42, 0.95); border-radius: 50%; box-shadow: inset 0 0 10px rgba(6,182,212,0.2); }
+        .circular-timer-text { position: relative; z-index: 10; font-family: 'Orbitron', sans-serif; font-size: 1.75rem; font-weight: bold; color: white; }
+        .timer-warning { background: conic-gradient(var(--neon-danger) var(--timer-pct, 100%), rgba(255,255,255,0.1) 0); box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulse-red-timer 1s infinite; }
+        .timer-warning-text { color: var(--neon-danger); text-shadow: 0 0 10px rgba(239,68,68,0.8); }
+
+        #question-container { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.7); border-radius: 16px; margin-top: 30px; }
+        #question-container.success { background: rgba(16, 185, 129, 0.15); border-color: #10b981; border-style: solid; box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
+        #question-container.error { background: rgba(239, 68, 68, 0.15); border-color: var(--neon-danger); border-style: solid; box-shadow: 0 0 40px rgba(239, 68, 68, 0.4); }
+
+        .choice-card-v2 { background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 4px solid var(--card-color); border-radius: 12px; color: #e2e8f0; transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); touch-action: none; }
+        .choice-card-v2::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 0%, var(--card-color) 0%, transparent 60%); opacity: 0.1; transition: opacity 0.3s; pointer-events: none; }
+        .choice-card-v2.hovered, .choice-card-v2:hover { transform: translateY(-5px); border-color: var(--card-color); box-shadow: 0 15px 25px rgba(0,0,0,0.6), 0 0 20px var(--card-color); color: white; }
+        .choice-card-v2.hovered::before, .choice-card-v2:hover::before { opacity: 0.3; }
+        .choice-card-v2.grabbing { transform: scale(1.05); background: var(--card-color); z-index: 100; box-shadow: 0 0 40px var(--card-color); }
+        .choice-card-v2.grabbing * { color: #000 !important; text-shadow: none !important; }
+
+        .circle-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.25rem; color: white; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); flex-shrink: 0; }
+        .track-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: linear-gradient(90deg, transparent, rgba(6,182,212,0.5), transparent); box-shadow: 0 0 10px rgba(6,182,212,0.5); z-index: 1; pointer-events: none; }
+        .jump-ripple { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 0; height: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); animation: ripple-anim 0.6s ease-out; pointer-events: none; z-index: 10; }
+        @keyframes ripple-anim { 0% { width: 0px; height: 0px; opacity: 1; } 100% { width: 500px; height: 500px; opacity: 0; } }
+
+        #camera-preview { position: fixed; bottom: 20px; right: 20px; width: 160px; height: 120px; border: 2px solid var(--neon-primary); border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); z-index: 1000; transform: scaleX(-1); background: #000; }
+
+        @keyframes pulse-red-timer { 0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } 50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); } 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } }
+        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes stamp-in { 0% { transform: scale(2.5) rotate(-15deg); opacity: 0; } 50% { transform: scale(0.9) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+        .animate-stamp { animation: stamp-in 0.5s ease-out forwards; }
+        .hidden-sys { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-100">
+
+    <canvas id="bg-canvas"></canvas>
+    <video id="input_video" style="display:none;" playsinline></video>
+    <canvas id="camera-preview" class="hidden-sys desktop-only"></canvas>
+
+    <div id="ui-layer" class="p-4 sm:p-8">
+        
+        <div id="screen-login" class="flex-1 flex flex-col items-center justify-center w-full min-h-[80vh] mobile-py-8">
+            <div class="auth-panel-v2 p-6 sm:p-10 text-center max-w-md w-full animate-fade-in-up mx-auto z-10 relative">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <i class="fa-solid fa-planet-ringed text-3xl sm:text-4xl text-cyan-400"></i>
+                    <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest uppercase" style="text-shadow: 0 0 10px #06b6d4;">DEEP SPACE AUTH</h2>
+                </div>
+                <div class="text-fuchsia-300 mb-8 text-[10px] sm:text-xs tracking-widest typewriter">Exploring the Universe, Unlocking Your Knowledge</div>
+
+                <form id="login-form" onsubmit="LoginSys.handleLogin(event)" class="space-y-4">
+                    <div class="text-left">
+                        <div id="wrap-studentid" class="auth-input-wrap">
+                            <div class="auth-icon"><i class="fa-solid fa-user"></i></div>
+                            <div class="w-full flex flex-col pl-3">
+                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">STUDENT ID (เลขประจำตัว)</label>
+                                <input type="text" id="inp-studentid" required placeholder="Enter ID" class="cyber-input-v2 text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <div id="wrap-firstname" class="auth-input-wrap">
+                            <div class="auth-icon"><i class="fa-solid fa-rocket"></i></div>
+                            <div class="w-full flex flex-col pl-3">
+                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">ASTRONAUT ID (ชื่อจริง)</label>
+                                <input type="text" id="inp-firstname" required placeholder="Enter First Name" class="cyber-input-v2 text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <div id="wrap-lastname" class="auth-input-wrap">
+                            <div class="auth-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="w-full flex flex-col pl-3">
+                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">CLEARANCE CODE (นามสกุล)</label>
+                                <input type="text" id="inp-lastname" required placeholder="Enter Last Name" class="cyber-input-v2 text-sm sm:text-base">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-login-submit" class="btn-auth w-full mt-6 px-6 py-3 sm:py-4 text-white font-sci font-bold tracking-widest text-sm sm:text-base transition-all hover:scale-105">
+                        <span id="btn-login-text"><i class="fa-solid fa-satellite-dish mr-2"></i> AUTHORIZE ACCESS &gt;&gt;</span>
+                    </button>
+                </form>
+
+                <div class="mt-8 pt-6 border-t border-cyan-500/30 grid grid-cols-3 gap-2 text-center text-cyan-400">
+                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-dharmachakra mb-1 text-lg"></i>
+                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">UNIVERSE<br><span class="text-[8px] font-normal text-slate-400">เอกภพและกาแล็กซี</span></span>
+                    </div>
+                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-star mb-1 text-lg"></i>
+                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">STARS<br><span class="text-[8px] font-normal text-slate-400">ดาวฤกษ์</span></span>
+                    </div>
+                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
+                        <i class="fa-solid fa-solar-panel mb-1 text-lg"></i>
+                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">SOLAR SYSTEM<br><span class="text-[8px] font-normal text-slate-400">ระบบสุริยะ</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Back Overlay -->
+            <div id="welcome-back-msg" class="hidden-sys fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
+                <div class="text-5xl sm:text-6xl text-cyan-400 mb-4 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"><i class="fa-solid fa-user-astronaut"></i></div>
+                <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest mb-2">WELCOME BACK, CAPTAIN</h2>
+                <div id="welcome-back-name" class="text-xl sm:text-2xl text-fuchsia-400 font-sci font-bold">Name</div>
+            </div>
+        </div>
+
+        <div id="screen-menu" class="hidden-sys flex-1 flex flex-col items-center justify-center w-full min-h-[80vh] mobile-py-8">
+            <div class="glass-panel p-6 sm:p-10 text-center max-w-4xl w-full flex flex-col items-center mx-auto border-cyan-500/30">
+                
+                <div class="flex items-center justify-between bg-slate-900/80 border border-slate-700 px-4 py-2 sm:px-5 sm:py-3 rounded-xl mb-4 sm:mb-6 w-full shadow-inner">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 border-2 border-white flex items-center justify-center text-white text-lg">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-[8px] sm:text-[10px] text-cyan-400 tracking-widest uppercase font-bold">Commander Recognized</div>
+                            <div id="display-player-name" class="font-bold text-xs sm:text-base text-white font-sci">Unknown</div>
+                        </div>
+                    </div>
+                    <div class="text-right border-l border-slate-700 pl-3">
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 tracking-widest uppercase">High Score</div>
+                        <div id="display-high-score" class="font-bold text-fuchsia-400 font-sci text-lg sm:text-xl">0</div>
+                    </div>
+                </div>
+
+                <h1 class="text-3xl sm:text-5xl font-sci font-bold mb-1 text-white tracking-wider" style="text-shadow: 0 0 15px var(--neon-primary);">ASTRO DEEP SPACE</h1>
+                <h2 class="text-sm sm:text-lg text-fuchsia-300 mb-2 sm:mb-4 font-semibold">ภารกิจพิชิต เอกภพ และดวงดาว (ม.6)</h2>
+                
+                <div class="flex items-center justify-between mb-4 bg-slate-900/60 p-2 sm:p-3 rounded-lg border border-slate-700/50 w-full max-w-md mx-auto desktop-only">
+                    <div id="cam-status" class="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-spinner fa-spin text-cyan-400"></i> Initializing Camera...
+                    </div>
+                </div>
+
+                <div class="mb-4 p-3 bg-indigo-900/30 rounded border border-indigo-500/50 text-xs text-indigo-200" id="device-hint">Loading Hint...</div>
+
+                <div class="w-full text-left mb-2">
+                    <h3 class="text-slate-400 font-sci tracking-widest text-sm border-b border-slate-700 pb-1"><i class="fa-solid fa-map-location-dot mr-2"></i> SELECT MISSION STAGE</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2 mb-6">
+                    <!-- Stage 1 -->
+                    <div onclick="GameSys.startCountdown(1)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.4)] group bg-slate-900/80">
+                        <div class="text-fuchsia-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-dharmachakra"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 1</h3>
+                        <div class="text-fuchsia-300 text-xs mb-3 font-semibold">COSMIC ORIGIN</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">กำเนิดเอกภพ บิกแบง และกาแล็กซี</div>
+                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                    </div>
+                    <!-- Stage 2 -->
+                    <div onclick="GameSys.startCountdown(2)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] group bg-slate-900/80">
+                        <div class="text-amber-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-star"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 2</h3>
+                        <div class="text-amber-300 text-xs mb-3 font-semibold">STELLAR ALCHEMY</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">สมบัติและวิวัฒนาการของดาวฤกษ์</div>
+                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                    </div>
+                    <!-- Stage 3 -->
+                    <div onclick="GameSys.startCountdown(3)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] group bg-slate-900/80">
+                        <div class="text-cyan-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-solar-panel"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 3</h3>
+                        <div class="text-cyan-300 text-xs mb-3 font-semibold">SOLAR NAVIGATOR</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">ระบบสุริยะ และกฎของเคปเลอร์</div>
+                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-4 sm:gap-6 w-full text-xs sm:text-sm">
+                    <button onclick="AudioSys.toggleSound()" id="btn-sound" class="text-cyan-400 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high"></i> Sound
+                    </button>
+                    <button onclick="LoginSys.logout()" class="text-red-400 hover:text-red-300 transition flex items-center gap-2">
+                        <i class="fa-solid fa-power-off"></i> Switch User
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-countdown" class="hidden-sys fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+            <div id="countdown-text" class="text-8xl sm:text-9xl font-sci font-bold text-cyan-400 drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]">3</div>
+        </div>
+
+        <div id="screen-game" class="hidden-sys flex-1 flex flex-col w-full max-w-6xl mx-auto pb-8">
+            <div class="glass-panel px-4 py-3 flex justify-between items-center mb-4 sm:mb-6 border-cyan-500/30">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full border-2 border-fuchsia-400 bg-slate-900 flex items-center justify-center">
+                        <i class="fa-solid fa-rocket text-base sm:text-2xl text-fuchsia-300"></i>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest">ผู้เล่น</div>
+                        <div id="ui-player-name" class="font-bold text-white tracking-wide text-sm font-sci uppercase">Player</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 sm:gap-8 bg-slate-900/80 px-3 sm:px-6 py-1 sm:py-2 rounded-full border border-slate-700 stats-container">
+                    <div class="text-center">
+                        <div class="text-[8px] sm:text-[10px] text-cyan-400 uppercase font-bold" id="ui-stage-indicator">STAGE 1</div>
+                        <div class="font-bold text-white text-sm sm:text-lg"><span id="ui-qnum">1</span><span class="text-slate-500">/5</span></div>
+                    </div>
+                    <div class="w-px h-6 bg-slate-700 stats-divider"></div>
+                    <div class="text-center">
+                        <div class="text-[8px] sm:text-[10px] text-fuchsia-400 uppercase font-bold">คะแนนรวม</div>
+                        <div id="ui-score" class="font-bold text-white text-sm sm:text-xl font-sci">0</div>
+                    </div>
+                    <div class="w-px h-6 bg-slate-700 stats-divider"></div>
+                    <div class="text-center">
+                        <div class="text-[8px] sm:text-[10px] text-red-400 uppercase font-bold">พลังงานยาน</div>
+                        <div id="ui-energy" class="flex gap-0.5 sm:gap-1 text-red-500 text-xs sm:text-base mt-1"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    <button onclick="GameSys.returnToMenu()" class="bg-slate-800 hover:bg-red-900/50 border border-slate-600 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full text-slate-300 hover:text-red-400 transition-colors w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="question-container" class="p-6 sm:p-12 mb-4 sm:mb-8 text-center z-10 flex flex-col items-center justify-center relative">
+                <div id="ui-timer-circle" class="circular-timer" style="--timer-pct: 100%;">
+                    <span id="ui-timer" class="circular-timer-text text-lg">30</span>
+                </div>
+
+                <div class="w-full flex justify-between items-center absolute top-2 sm:top-4 left-0 px-4 sm:px-6">
+                    <div id="ui-category" class="text-cyan-300 text-[8px] sm:text-[10px] font-bold tracking-widest bg-cyan-900/30 px-2 py-0.5 rounded-full border border-cyan-800 uppercase">CAT</div>
+                    <div id="ui-mode-text" class="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest desktop-only">โหมด: AI Pose + กระโดด</div>
+                </div>
+                
+                <h2 id="ui-question" class="text-lg sm:text-2xl md:text-3xl font-semibold leading-relaxed relative z-20 text-white mt-4 sm:mt-6">
+                    Loading Question...
+                </h2>
+                
+                <div id="question-result-overlay" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-40 bg-slate-900/95 backdrop-blur-md rounded-2xl">
+                    <div id="question-result-icon" class="text-4xl sm:text-6xl mb-2"></div>
+                    <div id="question-result-text" class="text-2xl sm:text-4xl font-bold font-sci tracking-widest"></div>
+                    <div id="question-result-pts" class="text-base sm:text-xl font-bold font-sci mt-2"></div>
+                    <div id="question-result-desc" class="mt-4 px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-slate-300 text-xs sm:text-sm max-w-2xl hidden"></div>
+                </div>
+            </div>
+
+            <div class="relative w-full h-10 sm:h-16 mb-2 sm:mb-4 z-20 desktop-only">
+                <div class="track-line"></div>
+                <div id="player-indicator" class="absolute top-1/2 -translate-y-1/2 w-10 h-10 sm:w-16 sm:h-16 bg-slate-900 rounded-full flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] border-2 border-cyan-500 transition-all duration-100 transform -translate-x-1/2 z-10" style="left: 50%; display: none;">
+                    <i class="fa-solid fa-street-view text-xl sm:text-3xl"></i>
+                </div>
+            </div>
+
+            <div id="ui-choices" class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-6 mb-2 sm:mb-4 z-20 w-full relative"></div>
+
+            <div class="text-center text-[10px] sm:text-xs text-slate-400 mt-2 tracking-wide bg-slate-900/50 py-1 sm:py-2 rounded-full border border-slate-700/50 inline-block px-4 mx-auto desktop-only">
+                <i class="fa-solid fa-arrows-left-right text-cyan-400 mr-2"></i> เดินไปที่คำตอบ แล้ว <b>"กระโดด"</b> เพื่อยืนยัน
+            </div>
+        </div>
+
+        <div id="screen-result" class="hidden-sys absolute inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-lg pt-10 pb-10">
+            <div class="flex items-center justify-center min-h-full px-4">
+                <div class="glass-panel p-6 sm:p-12 max-w-3xl w-full text-center relative border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)] mx-auto">
+                    <h1 class="text-2xl sm:text-5xl font-sci font-bold mb-2 text-cyan-400 tracking-widest" id="result-header">MISSION COMPLETE</h1>
+                    <div class="text-xs sm:text-xl text-fuchsia-300 mb-6 font-semibold uppercase" id="result-subheader">STAGE 1 FINISHED</div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
+                        <div class="flex-1 bg-slate-900/80 p-4 sm:p-6 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
+                            <div id="result-icon" class="text-4xl sm:text-6xl mb-4 text-cyan-400"><i class="fa-solid fa-user-astronaut"></i></div>
+                            <div class="text-[10px] sm:text-sm text-slate-400 uppercase tracking-widest font-bold">STAGE RANK</div>
+                            <div id="result-rank" class="text-lg sm:text-2xl font-bold text-fuchsia-400 font-sci">CLEARED</div>
+                        </div>
+
+                        <div class="flex-1 grid grid-cols-2 gap-2 sm:gap-4 text-left">
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
+                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Stage Score</div>
+                                <div id="result-score" class="font-sci text-xl sm:text-3xl text-cyan-400 font-bold">0</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
+                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Time Used</div>
+                                <div id="result-time" class="font-sci text-xl sm:text-3xl text-white font-bold">00:00</div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
+                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Correct/Wrong</div>
+                                <div class="font-sci text-lg sm:text-2xl text-white font-bold mt-1"><span id="result-correct" class="text-green-400">0</span> <span class="text-slate-500">/</span> <span id="result-wrong" class="text-red-400">0</span></div>
+                            </div>
+                            <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
+                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Accuracy</div>
+                                <div id="result-acc" class="font-sci text-xl sm:text-3xl text-fuchsia-400 font-bold">0%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <button onclick="GameSys.returnToMenu()" id="btn-menu-action" class="px-4 py-2 sm:px-6 sm:py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold border border-slate-600 text-xs sm:text-base">
+                            <i class="fa-solid fa-house mr-2"></i> BASE CAMP
+                        </button>
+                        <button id="btn-primary-action" class="px-5 py-2 sm:px-8 sm:py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-full font-bold text-xs sm:text-base opacity-50 cursor-not-allowed" disabled>
+                            <i class="fa-solid fa-forward mr-2"></i> NEXT STAGE
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DeviceSys = {
+            isMobile: false,
+            init() {
+                this.isMobile = (window.innerWidth <= 768) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const hintEl = document.getElementById('device-hint');
+                if(this.isMobile) {
+                    hintEl.innerHTML = '<i class="fa-solid fa-mobile-screen text-fuchsia-400"></i> ตรวจพบอุปกรณ์มือถือ: แตะเลือกคำตอบได้ทันที (ปิดระบบกล้องเพื่อประหยัดแบตเตอรี่)';
+                } else {
+                    hintEl.innerHTML = '<i class="fa-solid fa-laptop text-cyan-400"></i> โหมด Desktop: เปิดใช้งานกล้อง ให้ผู้เล่น "เดินซ้ายขวา และ กระโดด" เพื่อตอบคำถาม';
+                }
+            }
+        };
+
+        const AudioSys = {
+            ctx: null, isMuted: false, bgmNodes: [], bgmGain: null, isBGMPlaying: false,
+            init() { try { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); this.updateIcon(); } catch(e) {} },
+            toggleSound() { 
+                this.isMuted = !this.isMuted; 
+                if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); 
+                if (this.isMuted) { this.stopBGM(); } else { this.startBGM(); }
+                this.updateIcon(); 
+            },
+            startBGM() {
+                if (this.isMuted || !this.ctx || this.isBGMPlaying) return;
+                this.isBGMPlaying = true;
+                
+                this.bgmGain = this.ctx.createGain();
+                this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+                this.bgmGain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + 3); 
+                this.bgmGain.connect(this.ctx.destination);
+
+                const osc1 = this.ctx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 65.41;
+                const osc2 = this.ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 98.00;
+                const osc3 = this.ctx.createOscillator(); osc3.type = 'triangle'; osc3.frequency.value = 130.81;
+
+                const lfo = this.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.1; 
+                const lfoGain = this.ctx.createGain(); lfoGain.gain.value = 0.5;
+                lfo.connect(lfoGain);
+                
+                osc1.connect(this.bgmGain); osc2.connect(this.bgmGain);
+                
+                const osc3Gain = this.ctx.createGain(); osc3Gain.gain.value = 0.2;
+                lfoGain.connect(osc3Gain.gain); osc3.connect(osc3Gain); osc3Gain.connect(this.bgmGain);
+
+                osc1.start(); osc2.start(); osc3.start(); lfo.start();
+                this.bgmNodes = [osc1, osc2, osc3, lfo, lfoGain, osc3Gain];
+            },
+            stopBGM() {
+                this.isBGMPlaying = false;
+                if(this.bgmGain) {
+                    this.bgmGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5); 
+                    setTimeout(() => {
+                        this.bgmNodes.forEach(node => { try { node.stop(); } catch(e){} try { node.disconnect(); } catch(e){} });
+                        this.bgmNodes = []; if(this.bgmGain) this.bgmGain.disconnect(); this.bgmGain = null;
+                    }, 1600);
+                }
+            },
+            updateIcon() { const btn = document.getElementById('btn-sound'); if(btn) btn.innerHTML = this.isMuted ? '<i class="fa-solid fa-volume-xmark text-xl"></i> Sound' : '<i class="fa-solid fa-volume-high text-xl"></i> Sound'; },
+            playTone(freq, type, duration) { 
+                if(this.isMuted || !this.ctx) return; 
+                const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); 
+                osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime); 
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); 
+                gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + duration); osc.stop(this.ctx.currentTime + duration); 
+                setTimeout(() => { osc.disconnect(); gain.disconnect(); }, (duration * 1000) + 100);
+            },
+            playCorrect() { this.playTone(600, 'sine', 0.1); setTimeout(()=>this.playTone(800, 'sine', 0.2), 100); }, 
+            playError() { this.playTone(200, 'sawtooth', 0.3); }, playGrab() { this.playTone(400, 'square', 0.1); }, playTick() { this.playTone(1000, 'sine', 0.05); },
+            playCountdownBeep() { this.playTone(880, 'sine', 0.1); }, playCountdownGo() { this.playTone(1760, 'sine', 0.3); },
+            playScoreRoll() { if(this.isMuted || !this.ctx) return; let count = 0; let rollInterval = setInterval(() => { this.playTone(800 + (count * 20), 'sine', 0.03); count++; if(count > 25) clearInterval(rollInterval); }, 60); },
+            playTriumph() { if(this.isMuted || !this.ctx) return; this.playTone(523.25, 'sine', 0.1); setTimeout(() => this.playTone(659.25, 'sine', 0.1), 150); setTimeout(() => this.playTone(783.99, 'sine', 0.4), 300); }
+        };
+
+        const LoginSys = {
+            init() {
+                const sId = localStorage.getItem('astro_m6_studentid');
+                const fName = localStorage.getItem('astro_m6_firstname');
+                const lName = localStorage.getItem('astro_m6_lastname');
+                
+                this.setupValidation();
+                if(sId && fName && lName) {
+                    GameState.student.studentId = sId;
+                    GameState.student.firstName = fName;
+                    GameState.student.lastName = lName;
+                    this.showWelcomeBack(fName, lName);
+                }
+            },
+            setupValidation() {
+                const inputs = ['studentid', 'firstname', 'lastname'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(`inp-${id}`);
+                    const wrap = document.getElementById(`wrap-${id}`);
+                    if(el && wrap) { el.addEventListener('input', () => { wrap.classList.remove('error'); }); }
+                });
+            },
+            validateData(sId, fName, lName) {
+                let isValid = true;
+                if(!sId) { document.getElementById('wrap-studentid').classList.add('error'); isValid = false; }
+                if(!fName || fName.length < 2) { document.getElementById('wrap-firstname').classList.add('error'); isValid = false; }
+                if(!lName || lName.length < 2) { document.getElementById('wrap-lastname').classList.add('error'); isValid = false; }
+                return isValid;
+            },
+            async handleLogin(e) {
+                if(e) e.preventDefault();
+                const btn = document.getElementById('btn-login-submit');
+                const btnText = document.getElementById('btn-login-text');
+                const sId = document.getElementById('inp-studentid').value.trim();
+                const fName = document.getElementById('inp-firstname').value.trim();
+                const lName = document.getElementById('inp-lastname').value.trim();
+
+                if(!this.validateData(sId, fName, lName)) { if(AudioSys.ctx) AudioSys.playError(); return; }
+
+                btn.style.opacity = '0.8'; btn.style.pointerEvents = 'none'; btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
+                if(AudioSys.ctx) AudioSys.playTick();
+                await new Promise(r => setTimeout(r, 800));
+
+                btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i> ACCESS GRANTED';
+                if(AudioSys.ctx) AudioSys.playCorrect();
+
+                GameState.student.studentId = sId; GameState.student.firstName = fName; GameState.student.lastName = lName;
+                localStorage.setItem('astro_m6_studentid', sId); localStorage.setItem('astro_m6_firstname', fName); localStorage.setItem('astro_m6_lastname', lName);
+
+                setTimeout(() => { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btnText.innerHTML = '<i class="fa-solid fa-satellite-dish mr-2"></i> AUTHORIZE ACCESS &gt;&gt;'; this.showMenu(); }, 500);
+            },
+            showWelcomeBack(fName, lName) {
+                const welcomeScreen = document.getElementById('welcome-back-msg');
+                document.getElementById('welcome-back-name').innerText = `${fName} ${lName}`;
+                welcomeScreen.classList.remove('hidden-sys');
+                if(AudioSys.ctx === null) AudioSys.init();
+                
+                setTimeout(() => {
+                    if(AudioSys.ctx) AudioSys.playCorrect();
+                    setTimeout(() => { welcomeScreen.classList.add('hidden-sys'); this.showMenu(); }, 600);
+                }, 800);
+            },
+            logout() {
+                AudioSys.stopBGM();
+                localStorage.removeItem('astro_m6_studentid'); localStorage.removeItem('astro_m6_firstname'); localStorage.removeItem('astro_m6_lastname');
+                GameState.student.studentId = ''; GameState.student.firstName = ''; GameState.student.lastName = '';
+                document.getElementById('screen-menu').classList.add('hidden-sys');
+                document.getElementById('screen-login').classList.remove('hidden-sys');
+                document.getElementById('inp-studentid').value = ''; document.getElementById('inp-firstname').value = ''; document.getElementById('inp-lastname').value = '';
+            },
+            showMenu() {
+                document.getElementById('screen-login').classList.add('hidden-sys');
+                document.getElementById('screen-menu').classList.remove('hidden-sys');
+                document.getElementById('display-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
+                const hs = localStorage.getItem(`astro_m6_hs_${GameState.student.studentId}`) || 0;
+                document.getElementById('display-high-score').innerText = hs;
+                if(AudioSys.ctx === null) AudioSys.init();
+                AudioSys.startBGM();
+            }
+        };
+
+        const GraphicsSys = {
+            scene: null, camera: null, renderer: null, pivot: null, stars1: null, stars2: null, stars3: null, isGraphicsActive: true,
+            init() {
+                const canvas = document.getElementById('bg-canvas');
+                this.scene = new THREE.Scene(); this.scene.fog = new THREE.FogExp2(0x020617, 0.002);
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); this.camera.position.z = 35;
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                
+                this.pivot = new THREE.Group(); this.scene.add(this.pivot);
+                const sun = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); this.pivot.add(sun);
+
+                for(let i=0; i<4; i++) {
+                    const radius = 8 + (i*4);
+                    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.02, 16, 100), new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.3 }));
+                    ring.rotation.x = Math.PI / 2 + (Math.random() * 0.2); this.pivot.add(ring);
+                    const planetOrbit = new THREE.Group(); planetOrbit.rotation.y = Math.random() * Math.PI * 2;
+                    const planet = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random()*0.5, 8, 8), new THREE.MeshBasicMaterial({ color: i%2==0?0x06b6d4:0xd946ef }));
+                    planet.position.x = radius; planetOrbit.add(planet); planetOrbit.userData = { speed: 0.005 + (Math.random() * 0.01) }; this.pivot.add(planetOrbit);
+                }
+                this.pivot.position.set(0, 0, -20); this.pivot.rotation.x = 0.2;
+                
+                const createStars = (count, size, color, opacity) => {
+                    const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
+                    for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 150;
+                    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                    return new THREE.Points(geo, new THREE.PointsMaterial({ size, color, transparent: true, opacity, blending: THREE.AdditiveBlending }));
+                };
+                
+                const starMulti = DeviceSys.isMobile ? 0.2 : 1; 
+                this.stars1 = createStars(1000 * starMulti, 0.15, 0xffffff, 0.8);
+                this.stars2 = createStars(800 * starMulti, 0.25, 0x06b6d4, 0.5);
+                this.stars3 = createStars(400 * starMulti, 0.4, 0xd946ef, 0.3);
+                this.scene.add(this.stars1, this.stars2, this.stars3);
+
+                window.addEventListener('resize', () => { this.camera.aspect = window.innerWidth / window.innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(window.innerWidth, window.innerHeight); });
+                this.animate();
+            },
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                if(!this.isGraphicsActive) return;
+                if(this.pivot) { this.pivot.rotation.y += 0.001; this.pivot.children.forEach(child => { if (child.userData.speed) child.rotation.y += child.userData.speed; }); }
+                if(this.stars1) this.stars1.rotation.y += 0.0002; if(this.stars2) this.stars2.rotation.y += 0.0004; if(this.stars3) this.stars3.rotation.y += 0.0006;
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        const PoseTrackingSys = {
+            pose: null, camera: null, isReady: false, baseShoulderY: null, isActive: false, lastProcessTime: 0, fallbackMode: false,
+            async init() {
+                const videoElement = document.getElementById('input_video');
+                const canvasElement = document.getElementById('camera-preview');
+                const canvasCtx = canvasElement.getContext('2d');
+                const statusEl = document.getElementById('cam-status');
+
+                if (DeviceSys.isMobile) { this.enableFallbackMode(); return; }
+
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("Browser API not supported");
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+
+                    this.pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
+                    this.pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+
+                    this.pose.onResults((results) => {
+                        if(!this.isActive || this.fallbackMode) return;
+                        canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height); canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                        
+                        if (results.poseLandmarks) {
+                            const landmarks = results.poseLandmarks;
+                            drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS || POSE_CONNECTIONS, {color: '#d946ef', lineWidth: 2});
+                            drawLandmarks(canvasCtx, landmarks, {color: '#06b6d4', lineWidth: 1, radius: 2});
+
+                            const bodyCenterX = (landmarks[11].x + landmarks[12].x) / 2;
+                            const screenXRatio = 1 - bodyCenterX;
+                            const currentShoulderY = (landmarks[11].y + landmarks[12].y) / 2;
+                            if (this.baseShoulderY === null) this.baseShoulderY = currentShoulderY;
+                            else { if (currentShoulderY < this.baseShoulderY) this.baseShoulderY = (this.baseShoulderY * 0.98) + (currentShoulderY * 0.02); else this.baseShoulderY = (this.baseShoulderY * 0.80) + (currentShoulderY * 0.20); }
+
+                            let isJumping = false;
+                            if (this.baseShoulderY - currentShoulderY > 0.06) isJumping = true; 
+                            GestureSys.updateZone(screenXRatio, isJumping);
+                        } else { GestureSys.hideIndicator(); this.baseShoulderY = null; }
+                        canvasCtx.restore();
+                    });
+
+                    const frameInterval = 1000 / 24;
+                    this.camera = new Camera(videoElement, { 
+                        onFrame: async () => { 
+                            if(!this.isActive || this.fallbackMode) return;
+                            const now = Date.now();
+                            if (now - this.lastProcessTime >= frameInterval) {
+                                this.lastProcessTime = now;
+                                await this.pose.send({image: videoElement}); 
+                            }
+                        }, 
+                        width: 320, height: 240 
+                    });
+                    await this.camera.start(); this.isReady = true;
+                    statusEl.innerHTML = '<span class="text-cyan-400"><i class="fa-solid fa-video"></i> Camera Active</span>';
+                } catch (error) { this.enableFallbackMode(); }
+            },
+            enableFallbackMode() {
+                this.fallbackMode = true; this.isReady = true;
+                document.getElementById('camera-preview').style.display = 'none';
+                const statusEl = document.getElementById('cam-status');
+                if(statusEl) statusEl.innerHTML = '<span class="text-fuchsia-400"><i class="fa-solid fa-hand-pointer"></i> Touch Mode Active</span>';
+            }
+        };
+
+        const GestureSys = {
+            indicatorEl: null, isJumping: false, activeZone: null, jumpCooldown: false, smoothXRatio: 0.5,
+            init() { this.indicatorEl = document.getElementById('player-indicator'); },
+            updateZone(xRatio, isJumpingNow) {
+                if(!this.indicatorEl || PoseTrackingSys.fallbackMode) return;
+                
+                this.smoothXRatio = (this.smoothXRatio * 0.8) + (xRatio * 0.2);
+                const percentX = Math.max(0, Math.min(100, this.smoothXRatio * 100));
+                let currentZone = 1; if (this.smoothXRatio < 0.33) currentZone = 0; else if (this.smoothXRatio > 0.66) currentZone = 2;
+
+                if (!this.jumpCooldown && !GameState.isAnswering) {
+                    this.indicatorEl.style.display = 'flex'; this.indicatorEl.style.left = `${percentX}%`;
+                    if (this.activeZone !== currentZone) {
+                        document.querySelectorAll('.choice-card-v2').forEach(el => el.classList.remove('hovered'));
+                        this.activeZone = currentZone;
+                        const cards = document.querySelectorAll('.choice-card-v2'); 
+                        if(cards && cards[currentZone]) cards[currentZone].classList.add('hovered'); 
+                    }
+                }
+                
+                if (isJumpingNow && !this.isJumping && !this.jumpCooldown && !GameState.isAnswering) {
+                    this.indicatorEl.classList.add('scale-150', 'bg-cyan-400', 'border-white');
+                    setTimeout(() => this.indicatorEl.classList.remove('scale-150', 'bg-cyan-400', 'border-white'), 300);
+                    if (this.activeZone !== null) {
+                        const cards = document.querySelectorAll('.choice-card-v2');
+                        if (cards && cards[this.activeZone]) { this.triggerAnswer(this.activeZone, cards[this.activeZone]); }
+                    }
+                }
+                this.isJumping = isJumpingNow;
+            },
+            triggerAnswer(zone, cardEl) {
+                this.jumpCooldown = true; setTimeout(() => { this.jumpCooldown = false; }, 2000);
+                AudioSys.playGrab(); 
+                let ripple = document.createElement('span'); ripple.className = 'jump-ripple'; cardEl.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+                cardEl.classList.add('grabbing'); 
+                GameSys.checkAnswer(zone, cardEl); 
+            },
+            hideIndicator() { 
+                if(this.indicatorEl) this.indicatorEl.style.display = 'none'; 
+                document.querySelectorAll('.choice-card-v2').forEach(el => el.classList.remove('hovered', 'grabbing')); 
+                this.activeZone = null; this.isJumping = false; 
+            }
+        };
+
+        const DragDropSys = {
+            init() {
+                const selectAnswer = (e) => {
+                    if(GameState.isAnswering) return;
+                    const card = e.target.closest('.choice-card-v2'); if(!card) return;
+                    e.preventDefault(); AudioSys.playGrab(); card.classList.add('grabbing'); GameSys.checkAnswer(parseInt(card.dataset.index), card);
+                };
+                const choicesContainer = document.getElementById('ui-choices');
+                choicesContainer.addEventListener('mousedown', selectAnswer); choicesContainer.addEventListener('touchstart', selectAnswer, {passive: false});
+            }
+        };
+
+        const QuestionBank = [
+            // ================= STAGE 1: เอกภพและกาแล็กซี (Level 1 - 11 ข้อ) =================
+            { id: "M6_1_01", level: 1, q: "ทฤษฎีใดอธิบายการกำเนิดของเอกภพได้ดีที่สุดและเป็นที่ยอมรับมากที่สุดในปัจจุบัน?", c: ["ทฤษฎีสภาวะคงที่", "ทฤษฎีบิกแบง", "ทฤษฎีสัมพัทธภาพ"], a: 1, cat: "กำเนิดเอกภพ", desc: "ทฤษฎีบิกแบงได้รับการยอมรับมากที่สุด เนื่องจากมีหลักฐานสนับสนุนคือ การขยายตัวของเอกภพ และไมโครเวฟพื้นหลังอวกาศ" },
+            { id: "M6_1_02", level: 1, q: "การรวมตัวกันของ 'อนุภาค' และ 'ปฏิอนุภาค' ในช่วงแรกของการกำเนิดเอกภพ จะทำให้เกิดสิ่งใดขึ้น?", c: ["กาแล็กซีรุ่นแรก", "พลังงาน (โฟตอน)", "อะตอมของไฮโดรเจน"], a: 1, cat: "วิวัฒนาการเอกภพ", desc: "เมื่ออนุภาคและปฏิอนุภาครวมตัวกันจะทำลายล้างกันเองและเปลี่ยนเป็นพลังงานในรูปของโฟตอน" },
+            { id: "M6_1_03", level: 1, q: "ฮับเบิลค้นพบความสัมพันธ์ระหว่างระยะทางของกาแล็กซีที่อยู่ห่างจากโลกกับสิ่งใด?", c: ["ความเร็วในการถอยห่าง", "อุณหภูมิพื้นหลังของเอกภพ", "มวลของกาแล็กซี"], a: 0, cat: "กฎของฮับเบิล", desc: "กฎของฮับเบิลระบุว่า ความเร็วถอยห่างของกาแล็กซีแปรผันตรงกับระยะห่างจากผู้สังเกต" },
+            { id: "M6_1_04", level: 1, q: "ปรากฏการณ์ 'เลื่อนทางแดง (Redshift)' ของสเปกตรัมที่สังเกตได้จากกาแล็กซีต่าง ๆ บ่งชี้ถึงสิ่งใด?", c: ["เอกภพกำลังขยายตัว", "เอกภพกำลังหดตัว", "เอกภพมีอุณหภูมิลดลง"], a: 0, cat: "หลักฐานบิกแบง", desc: "การเลื่อนทางแดงของสเปกตรัมแสดงให้เห็นว่า กาแล็กซีต่างๆ กำลังเคลื่อนที่ถอยห่างออกจากเรา ซึ่งเป็นหลักฐานว่าเอกภพกำลังขยายตัว" },
+            { id: "M6_1_05", level: 1, q: "จากกฎของฮับเบิล หากกาแล็กซี A อยู่ห่างโลก 100 Mpc และกาแล็กซี B อยู่ห่าง 200 Mpc ข้อใดสรุปได้ถูกต้อง?", c: ["กาแล็กซี A ถอยห่างเร็วกว่า B", "กาแล็กซี B ถอยห่างเร็วกว่า A เป็นสองเท่า", "ทั้งสองถอยห่างด้วยความเร็วเท่ากัน"], a: 1, cat: "กฎของฮับเบิล", desc: "ตามสมการ v = H0d ระยะทางมากกว่า 2 เท่า ความเร็วถอยห่างก็จะมากกว่า 2 เท่าด้วย" },
+            { id: "M6_1_06", level: 1, q: "หากค่าคงตัวของฮับเบิล (H0) มีค่า 'มากกว่า' ที่เคยประเมินไว้ ข้อมูลนี้จะส่งผลต่อการคำนวณอายุของเอกภพอย่างไร?", c: ["อายุของเอกภพที่คำนวณได้จะน้อยลง", "อายุของเอกภพที่คำนวณได้จะมากขึ้น", "อายุของเอกภพจะไม่เปลี่ยนแปลง"], a: 0, cat: "อายุเอกภพ", desc: "อายุของเอกภพแปรผกผันกับค่าคงตัวฮับเบิล (t = 1/H0) ดังนั้นถ้า H0 มากขึ้น อายุที่คำนวณได้จะน้อยลง" },
+            { id: "M6_1_07", level: 1, q: "องค์ประกอบหลักของเอกภพในปัจจุบันคืออะไร?", c: ["สสารธรรมดา (ดาวฤกษ์ กาแล็กซี)", "พลังงานมืดและสสารมืด", "หลุมดำมวลยิ่งยวด"], a: 1, cat: "องค์ประกอบเอกภพ", desc: "เอกภพประกอบด้วยพลังงานมืดประมาณ 68% สสารมืด 27% และสสารธรรมดาเพียง 5% เท่านั้น" },
+            { id: "M6_1_08", level: 1, q: "ตามทฤษฎี ปัจจัยใดที่ทำให้กาแล็กซีแต่ละแห่งมีรูปร่างแตกต่างกัน (เช่น กังหัน ทรงรี)?", c: ["ปริมาณของหลุมดำ", "ความเร็วในการก่อตัวของสสารและแก๊ส", "อุณหภูมิของไมโครเวฟพื้นหลัง"], a: 1, cat: "กำเนิดกาแล็กซี", desc: "อัตราความเร็วในการยุบตัวก่อตัวของกลุ่มแก๊สและสสารมีผลต่อรูปร่างของกาแล็กซี" },
+            { id: "M6_1_09", level: 1, q: "กาแล็กซีทางช้างเผือก (Milky Way) ที่เราอาศัยอยู่ จัดเป็นกาแล็กซีประเภทใด?", c: ["กาแล็กซีกังหันแบบมีคาน", "กาแล็กซีรี", "กาแล็กซีไร้รูปร่าง"], a: 0, cat: "กาแล็กซี", desc: "ทางช้างเผือกเป็นกาแล็กซีกังหันแบบมีคาน (SB) โดยมีศูนย์กลางคล้ายคานและมีแขนกังหันยื่นออกมา" },
+            { id: "M6_1_10", level: 1, q: "บริเวณใดเป็นศูนย์กลางของกาแล็กซีทางช้างเผือกและมีดาวฤกษ์หนาแน่นที่สุด?", c: ["บริเวณแขนกังหัน", "กระจุกดาวเปิดบริเวณฮาโล", "หลุมดำมวลยิ่งยวดบริเวณดุมกาแล็กซี"], a: 2, cat: "กาแล็กซี", desc: "ดุมกาแล็กซีเป็นส่วนป่องตรงกลางที่มีดาวฤกษ์หนาแน่นและมีหลุมดำมวลยิ่งยวดซ่อนอยู่" },
+            { id: "M6_1_11", level: 1, q: "ตามลำดับวิวัฒนาการของเอกภพ นิวเคลียสของธาตุเบาแรกสุดที่เกิดขึ้นคือข้อใด?", c: ["คาร์บอน และ ออกซิเจน", "ไฮโดรเจน และ ฮีเลียม", "เหล็ก และ นิกเกิล"], a: 1, cat: "วิวัฒนาการเอกภพ", desc: "ในช่วง 3 นาทีแรก อุณหภูมิลดลงพอที่โปรตอนและนิวตรอนจะรวมตัวกันเป็นนิวเคลียสของไฮโดรเจนและฮีเลียม" },
+
+            // ================= STAGE 2: ดาวฤกษ์ (Level 2 - 14 ข้อ) =================
+            { id: "M6_2_01", level: 2, q: "ดาวฤกษ์เกิดขึ้นจากการยุบตัวของสสารใดภายในเอกภพ?", c: ["ธาตุหนักภายในซากซูเปอร์โนวา", "กลุ่มฝุ่นและแก๊สภายในเนบิวลา", "อนุภาคนิวตริโนจำนวนมาก"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "ดาวฤกษ์เกิดจากการยุบตัวของกลุ่มแก๊สและฝุ่นในเนบิวลาภายใต้แรงโน้มถ่วงของตนเอง" },
+            { id: "M6_2_02", level: 2, q: "ดาวฤกษ์ก่อนเกิด (Protostar) จะเปลี่ยนสถานะเป็น 'ดาวฤกษ์' สมบูรณ์ได้เมื่อเกิดสิ่งใดที่แก่นกลาง?", c: ["การระเบิดของซูเปอร์โนวา", "ปฏิกิริยาเทอร์โมนิวเคลียร์", "การยุบตัวด้วยแรงโน้มถ่วง"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "เมื่อแก่นกลางมีอุณหภูมิสูง 15 ล้านเคลวิน จะเกิดฟิวชันหลอมไฮโดรเจนเป็นฮีเลียม ถือเป็นดาวฤกษ์สมบูรณ์" },
+            { id: "M6_2_03", level: 2, q: "ดาวฤกษ์ในข้อใดต่อไปนี้จะปรากฏให้เห็นบนโลก 'สว่างน้อยที่สุด'?", c: ["โชติมาตรปรากฏ -1.46", "โชติมาตรปรากฏ 1.25", "โชติมาตรปรากฏ 5.00"], a: 2, cat: "ความสว่าง", desc: "โชติมาตร (Magnitude) ยิ่งมีค่าบวกมากเท่าไร ดาวดวงนั้นก็จะยิ่งสว่างน้อยลงเท่านั้น" },
+            { id: "M6_2_04", level: 2, q: "ดาว A โชติมาตร 1 และดาว B โชติมาตร 4 ดาวทั้งสองจะสว่างต่างกันประมาณกี่เท่า?", c: ["2.5 เท่า", "7.5 เท่า", "15.85 เท่า"], a: 2, cat: "ความสว่าง", desc: "ต่างกัน 1 ระดับจะสว่างต่างกัน 2.512 เท่า หากต่าง 3 ระดับ (4-1=3) คือ 2.512^3 ≈ 15.85 เท่า" },
+            { id: "M6_2_05", level: 2, q: "หากดาวฤกษ์ทุกดวงมีขนาดเท่ากัน ดาวฤกษ์สีใดจะมี 'กำลังส่องสว่าง' มากที่สุด?", c: ["สีน้ำเงิน", "สีเหลือง", "สีแดง"], a: 0, cat: "กำลังส่องสว่าง", desc: "ดาวสีน้ำเงินมีอุณหภูมิพื้นผิวสูงสุด ตามกฎสเตฟาน-โบลต์ซมันน์ ยิ่งร้อนมาก ยิ่งมีกำลังส่องสว่างมาก" },
+            { id: "M6_2_06", level: 2, q: "ดาวฤกษ์ที่มีสีใดต่อไปนี้มี 'อุณหภูมิพื้นผิวสูงที่สุด'?", c: ["สีขาว", "สีเหลือง", "สีน้ำเงิน"], a: 2, cat: "สีและอุณหภูมิ", desc: "สเปกตรัม O, B (สีน้ำเงิน) ร้อนที่สุด ส่วนสเปกตรัม M (สีแดง) เย็นที่สุด" },
+            { id: "M6_2_07", level: 2, q: "ดาวฤกษ์ที่มีสีส้มและอุณหภูมิพื้นผิวประมาณ 3,500 - 5,000 K จะมีสเปกตรัมชนิดใด?", c: ["สเปกตรัม A", "สเปกตรัม G", "สเปกตรัม K"], a: 2, cat: "สเปกตรัม", desc: "เรียงลำดับ O B A F G K M (ร้อนไปเย็น) ดาวสีส้มจะอยู่ในช่วงสเปกตรัม K" },
+            { id: "M6_2_08", level: 2, q: "ดาวฤกษ์สีขาวอุณหภูมิผิว 7,500 - 10,000 K จะอยู่ในสเปกตรัมชนิดใด?", c: ["สเปกตรัม A", "สเปกตรัม F", "สเปกตรัม G"], a: 0, cat: "สเปกตรัม", desc: "สเปกตรัม A เป็นดาวสีขาว อุณหภูมิประมาณ 7500-10000K (เช่น ดาวซิริอุส)" },
+            { id: "M6_2_09", level: 2, q: "ข้อใดเรียงลำดับดาวฤกษ์ตามอุณหภูมิพื้นผิวจาก 'น้อยไปหามาก' ได้ถูกต้อง?", c: ["O, B, A, F", "M, K, G, F", "A, F, G, K"], a: 1, cat: "สเปกตรัม", desc: "เรียงจากเย็น(น้อย)ไปร้อน(มาก) คือ M (แดง) -> K (ส้ม) -> G (เหลือง) -> F (ขาวเหลือง)" },
+            { id: "M6_2_10", level: 2, q: "เหตุใดดาวฤกษ์ที่มีมวลมาก จึงมีช่วงอายุขัย 'สั้นกว่า' ดาวฤกษ์ที่มีมวลน้อย?", c: ["อุณหภูมิต่ำกว่าจึงหยุดปฏิกิริยาได้เร็ว", "มีแรงโน้มถ่วงต่ำ มวลจึงหลุดลอยสู่อวกาศ", "อัตราการเผาผลาญเชื้อเพลิงสูงมากเพื่อต้านแรงโน้มถ่วง"], a: 2, cat: "อายุขัยดาวฤกษ์", desc: "ดาวมวลมากมีแรงโน้มถ่วงสูงมาก จึงต้องเผาผลาญเชื้อเพลิงอย่างรุนแรงเพื่อพยุงตัว ทำให้เชื้อเพลิงหมดไว" },
+            { id: "M6_2_11", level: 2, q: "ดาวฤกษ์ที่มีมวลตั้งต้น 9 - 25 เท่าของดวงอาทิตย์ เมื่อสิ้นอายุขัยมักจะกลายเป็นสิ่งใด?", c: ["ดาวแคระขาว", "ดาวนิวตรอน", "หลุมดำ"], a: 1, cat: "จุดจบดาวฤกษ์", desc: "ดาวมวล 9-25 เท่าของดวงอาทิตย์ จะระเบิดเป็นซูเปอร์โนวา และแกนกลางยุบตัวกลายเป็นดาวนิวตรอน" },
+            { id: "M6_2_12", level: 2, q: "ดาวฤกษ์ที่มีมวลตั้งต้น มากกว่า 25 เท่าของดวงอาทิตย์ วิวัฒนาการขั้นสุดท้ายจะกลายเป็นสิ่งใด?", c: ["ดาวแคระขาว", "ดาวนิวตรอน", "หลุมดำ"], a: 2, cat: "จุดจบดาวฤกษ์", desc: "ดาวที่มีมวลมหาศาล แรงโน้มถ่วงจะเอาชนะแรงดันต้านทุกสิ่ง ยุบตัวลงเป็นจุดที่มีความหนาแน่นอนันต์เรียกว่าหลุมดำ" },
+            { id: "M6_2_13", level: 2, q: "[ภารกิจวิเคราะห์] ภาพถ่ายดาว 3 ดวง: Alpha (สีน้ำเงิน), Beta (สีเหลือง), Gamma (สีแดง) ดาวดวงใดร้อนที่สุด?", c: ["ดาว Gamma (สีแดง)", "ดาว Beta (สีเหลือง)", "ดาว Alpha (สีน้ำเงิน)"], a: 2, cat: "วิเคราะห์ดาวฤกษ์", desc: "สีของดาวบ่งบอกอุณหภูมิผิว ดาวสีน้ำเงิน (Alpha) ร้อนที่สุด ส่วนดาวสีแดง (Gamma) เย็นที่สุด" },
+            { id: "M6_2_14", level: 2, q: "ดาวฤกษ์มวลน้อยคล้ายดวงอาทิตย์ เมื่อสิ้นอายุขัย เปลือกนอกจะกระจายตัวออกกลายเป็นสิ่งใด?", c: ["เนบิวลาดาวเคราะห์", "หลุมดำมวลยิ่งยวด", "ดาวแคระน้ำตาล"], a: 0, cat: "จุดจบดาวฤกษ์", desc: "เมื่อแกนกลางยุบเป็นดาวแคระขาว เปลือกนอกที่ขยายตัวจะหลุดลอยออกสู่อวกาศ กลายเป็นเนบิวลาดาวเคราะห์" },
+
+            // ================= STAGE 3: ระบบสุริยะ (Level 3 - 7 ข้อ) =================
+            { id: "M6_3_01", level: 3, q: "มวลประมาณร้อยละ 99.8 ของแก๊สในเนบิวลาสุริยะ รวมตัวกันเกิดเป็นวัตถุใดในระบบสุริยะ?", c: ["ดาวพฤหัสบดี", "ดาวเคราะห์ชั้นใน", "ดวงอาทิตย์"], a: 2, cat: "ระบบสุริยะ", desc: "มวลเกือบทั้งหมดของการก่อตัวระบบสุริยะยุบตัวรวมกันอยู่ที่ศูนย์กลาง กลายเป็นดวงอาทิตย์ของเรา" },
+            { id: "M6_3_02", level: 3, q: "ในช่วงท้ายที่สุดของชีวิต ดวงอาทิตย์ของเราจะยุบตัวลงและมีวิวัฒนาการกลายเป็นสิ่งใด?", c: ["ดาวแคระขาว", "ดาวนิวตรอน", "หลุมดำ"], a: 0, cat: "วิวัฒนาการดวงอาทิตย์", desc: "ดวงอาทิตย์เป็นดาวมวลน้อย เมื่อสิ้นอายุขัย เปลือกนอกจะกระจายออก และแกนกลางจะยุบตัวเป็นดาวแคระขาว" },
+            { id: "M6_3_03", level: 3, q: "ระหว่างวงโคจรของ 'ดาวอังคาร' และ 'ดาวพฤหัสบดี' เราจะพบกลุ่มวัตถุใด?", c: ["เมฆออร์ต", "แถบไคเปอร์", "แถบดาวเคราะห์น้อย"], a: 2, cat: "ระบบสุริยะ", desc: "แถบดาวเคราะห์น้อย (Asteroid Belt) เป็นเศษซากที่รวมตัวเป็นดาวเคราะห์ไม่ได้ โคจรอยู่ระหว่างดาวอังคารและพฤหัสบดี" },
+            { id: "M6_3_04", level: 3, q: "ตามกฎเคปเลอร์ข้อที่ 2 เมื่อโลกโคจรไปอยู่ในตำแหน่ง 'ใกล้' ดวงอาทิตย์มากที่สุด ความเร็วจะเป็นอย่างไร?", c: ["เคลื่อนที่ช้าลง", "เคลื่อนที่เร็วขึ้น", "เคลื่อนที่ด้วยความเร็วคงที่"], a: 1, cat: "กฎเคปเลอร์", desc: "ตามกฎพื้นที่เท่ากัน (Law of Equal Areas) เมื่อเข้าใกล้ดวงอาทิตย์ แรงโน้มถ่วงจะดึงดูดมากขึ้น โลกจึงโคจรเร็วขึ้น" },
+            { id: "M6_3_05", level: 3, q: "ตามกฎของเคปเลอร์ ดาวเคราะห์จะโคจรรอบดวงอาทิตย์เป็นรูปทรงใด?", c: ["วงกลมสมบูรณ์", "วงรี โดยมีดวงอาทิตย์ที่จุดโฟกัส", "พาราโบลา"], a: 1, cat: "กฎเคปเลอร์", desc: "เคปเลอร์พบว่าวงโคจรของดาวเคราะห์เป็นรูปวงรี (Ellipse) โดยดวงอาทิตย์อยู่ที่จุดโฟกัสจุดหนึ่งของวงรี" },
+            { id: "M6_3_06", level: 3, q: "โครงสร้างดวงอาทิตย์ชั้นใด ที่เราเห็นเป็นดวงไฟสว่างได้ด้วยตาเปล่า และเกิดจุดมืด (Sunspot)?", c: ["ชั้นโครโมสเฟียร์", "ชั้นโฟโตสเฟียร์", "ชั้นโคโรนา"], a: 1, cat: "ดวงอาทิตย์", desc: "โฟโตสเฟียร์ (Photosphere) คือชั้นบรรยากาศชั้นล่างสุดที่แผ่แสงสว่างออกมา และมีจุดอุณหภูมิต่ำเกิดเป็นจุดมืด" },
+            { id: "M6_3_07", level: 3, q: "ปัจจุบัน ยานอวกาศที่มีมนุษย์เดินทางไปด้วย สามารถเดินทางไปไกลสุดถึงจุดหมายใด?", c: ["ดาวอังคาร", "ดวงจันทร์", "ดาวเคราะห์น้อย"], a: 1, cat: "การสำรวจอวกาศ", desc: "โครงการอะพอลโล (Apollo) เป็นโครงการเดียวที่นำมนุษย์เดินทางไปลงจอดบนดวงจันทร์ได้สำเร็จ" }
+        ];
+
+        const GameState = {
+            student: { studentId: "", firstName: "", lastName: "" }, attemptId: "",
+            currentStage: 1, score: 0, energy: 5, timer: 30, qIndex: 0, 
+            activeQuestions: [], startTime: 0, stats: { correct: 0, wrong: 0, timeUsed: 0 },
+            questionResults: [], isAnswering: false, timerInterval: null
+        };
+
+        const GameSys = {
+            startCountdown(stageNum) {
+                GameState.currentStage = stageNum || 1;
+                if(AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+                document.getElementById('screen-menu').classList.add('hidden-sys');
+                document.getElementById('screen-countdown').classList.remove('hidden-sys');
+                
+                PoseTrackingSys.isActive = true;
+                
+                let count = 3;
+                const cdText = document.getElementById('countdown-text');
+                const themeColor = stageNum === 1 ? 'text-fuchsia-400' : (stageNum === 2 ? 'text-amber-400' : 'text-cyan-400');
+                const shadowColor = stageNum === 1 ? 'rgba(217,70,239,0.8)' : (stageNum === 2 ? 'rgba(245,158,11,0.8)' : 'rgba(6,182,212,0.8)');
+
+                cdText.innerText = count; 
+                cdText.className = `text-8xl sm:text-9xl font-sci font-bold ${themeColor} countdown-pop`;
+                cdText.style.textShadow = `0 0 30px ${shadowColor}`;
+                AudioSys.playCountdownBeep();
+
+                const cdInterval = setInterval(() => {
+                    count--;
+                    cdText.classList.remove('countdown-pop'); void cdText.offsetWidth; 
+                    if (count > 0) {
+                        cdText.innerText = count; cdText.classList.add('countdown-pop'); AudioSys.playCountdownBeep();
+                    } else if (count === 0) {
+                        cdText.innerText = "GO!"; cdText.className = "text-8xl sm:text-9xl font-sci font-bold text-green-400 countdown-go"; 
+                        cdText.style.textShadow = `0 0 40px rgba(74,222,128,0.8)`;
+                        AudioSys.playCountdownGo();
+                    } else {
+                        clearInterval(cdInterval);
+                        document.getElementById('screen-countdown').classList.add('hidden-sys');
+                        this.actuallyStartGame();
+                    }
+                }, 1000);
+            },
+            actuallyStartGame() {
+                document.getElementById('screen-result').classList.add('hidden-sys'); document.getElementById('screen-game').classList.remove('hidden-sys');
+                if(!PoseTrackingSys.fallbackMode) document.getElementById('camera-preview').classList.remove('hidden-sys');
+
+                GameState.attemptId = `ASTRO-M6-S${GameState.currentStage}-` + Date.now();
+                GameState.questionResults = [];
+                
+                const pool = QuestionBank.filter(q => q.level === GameState.currentStage);
+                const shuffled = [...pool].sort(() => 0.5 - Math.random());
+                GameState.activeQuestions = shuffled.slice(0, 5); 
+                
+                GameState.score = 0; GameState.energy = 5; GameState.qIndex = 0; GameState.stats = { correct: 0, wrong: 0, timeUsed: 0 }; GameState.startTime = Date.now();
+                
+                this.updateUI(); this.loadQuestion();
+            },
+            returnToMenu() { 
+                this.clearTimer(); 
+                document.getElementById('screen-game').classList.add('hidden-sys'); 
+                document.getElementById('screen-result').classList.add('hidden-sys'); 
+                document.getElementById('screen-menu').classList.remove('hidden-sys'); 
+                PoseTrackingSys.isActive = false;
+            },
+            updateUI() {
+                document.getElementById('ui-stage-indicator').innerText = `STAGE ${GameState.currentStage}`;
+                document.getElementById('ui-score').innerText = GameState.score.toString();
+                let heartsHtml = ''; for(let i=0; i<5; i++) heartsHtml += i < GameState.energy ? '<i class="fa-solid fa-heart text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i>' : '<i class="fa-regular fa-heart text-slate-700"></i>';
+                document.getElementById('ui-energy').innerHTML = heartsHtml; document.getElementById('ui-qnum').innerText = GameState.qIndex + 1;
+                
+                /* อัปเดตชื่อผู้เล่นและ ID ให้ตรงกับที่ล็อกอินเข้ามา */
+                document.getElementById('ui-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
+            },
+            loadQuestion() {
+                if (GameState.qIndex >= 5 || GameState.energy <= 0) { this.endGame(); return; }
+                GameState.isAnswering = false; GameState.timer = 30; this.updateTimerUI();
+                const q = GameState.activeQuestions[GameState.qIndex];
+                
+                const stageNames = ["COSMIC ORIGIN", "STELLAR ALCHEMY", "SOLAR NAVIGATOR"];
+                document.getElementById('ui-category').innerText = `STAGE ${GameState.currentStage} : ${stageNames[GameState.currentStage-1]} - ${q.cat}`; 
+                document.getElementById('ui-question').innerText = q.q;
+                
+                const dz = document.getElementById('question-container'); dz.classList.remove('success', 'error');
+                const overlay = document.getElementById('question-result-overlay'); overlay.classList.add('opacity-0'); overlay.classList.remove('opacity-100');
+                document.getElementById('question-result-desc').classList.add('hidden');
+                
+                const choicesDiv = document.getElementById('ui-choices'); choicesDiv.innerHTML = '';
+                const hexColors = ['#06b6d4', '#d946ef', '#f59e0b']; // Cyan, Fuchsia, Amber 
+
+                q.c.forEach((choice, idx) => {
+                    const hex = hexColors[idx];
+                    const btn = document.createElement('div'); 
+                    btn.className = 'choice-card-v2 p-4 sm:p-6 flex flex-row sm:flex-col items-center gap-3 sm:gap-4 justify-start sm:justify-center w-full'; 
+                    btn.style.setProperty('--card-color', hex); btn.dataset.index = idx; 
+                    
+                    btn.innerHTML = `<div class="circle-num w-8 h-8 sm:w-10 sm:h-10 text-sm sm:text-xl">${idx + 1}</div><div class="font-semibold text-xs sm:text-base md:text-lg text-left sm:text-center leading-tight flex-1 px-1">${choice}</div>`;
+                    choicesDiv.appendChild(btn);
+                });
+                
+                this.startTimer();
+            },
+            startTimer() {
+                this.clearTimer(); const timerBox = document.getElementById('ui-timer-circle'); const timerText = document.getElementById('ui-timer');
+                timerBox.classList.remove('timer-warning'); timerText.classList.remove('timer-warning-text'); timerBox.style.setProperty('--timer-pct', '100%');
+
+                GameState.timerInterval = setInterval(() => { 
+                    GameState.timer--; this.updateTimerUI(); 
+                    if(GameState.timer <= 5 && GameState.timer > 0) { AudioSys.playTick(); timerBox.classList.add('timer-warning'); timerText.classList.add('timer-warning-text'); } 
+                    if(GameState.timer <= 0) this.handleTimeOut(); 
+                }, 1000);
+            },
+            clearTimer() { if(GameState.timerInterval) { clearInterval(GameState.timerInterval); GameState.timerInterval = null; } },
+            updateTimerUI() { document.getElementById('ui-timer').innerText = GameState.timer; const pct = (GameState.timer / 30) * 100; document.getElementById('ui-timer-circle').style.setProperty('--timer-pct', `${pct}%`); },
+            checkAnswer(selectedIndex, cardElement) {
+                if (GameState.isAnswering) return; GameState.isAnswering = true; this.clearTimer();
+                const q = GameState.activeQuestions[GameState.qIndex]; const isCorrect = (selectedIndex === q.a); const timeTaken = 30 - GameState.timer; GameState.stats.timeUsed += timeTaken;
+                const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
+                overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
+                let pointsEarned = 0;
+                if (isCorrect) {
+                    AudioSys.playCorrect(); dz.classList.add('success'); pointsEarned = 10; let bonusText = ""; if (GameState.timer >= 20) { pointsEarned += 5; bonusText = " (+5 SPEED)"; }
+                    document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
+                    document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-green-400"; document.getElementById('question-result-text').innerText = "CORRECT";
+                    document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-cyan-400 mt-2"; document.getElementById('question-result-pts').innerText = `+${pointsEarned} POINTS${bonusText}`;
+                    GameState.score += pointsEarned; GameState.stats.correct++;
+                } else {
+                    AudioSys.playError(); dz.classList.add('error'); pointsEarned = -5;
+                    document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
+                    document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "INCORRECT";
+                    document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-5 POINTS / -1 ENERGY";
+                    GameState.score = Math.max(0, GameState.score - 5); GameState.energy--; GameState.stats.wrong++;
+                }
+                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: q.c[selectedIndex], correctAnswer: q.c[q.a], result: isCorrect ? "correct" : "wrong", score: pointsEarned, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 5000);
+            },
+            handleTimeOut() {
+                GameState.isAnswering = true; this.clearTimer(); AudioSys.playError(); const q = GameState.activeQuestions[GameState.qIndex]; const timeTaken = 30; GameState.stats.timeUsed += timeTaken;
+                const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
+                dz.classList.add('error'); overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
+                document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-clock text-red-500"></i>';
+                document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "TIME OUT";
+                document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-1 ENERGY";
+                GameState.energy--; GameState.stats.wrong++;
+                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: "TIMEOUT", correctAnswer: q.c[q.a], result: "wrong", score: 0, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 5000);
+            },
+            nextQuestion() { GameState.qIndex++; if (GameState.energy <= 0 || GameState.qIndex >= 5) this.endGame(); else this.loadQuestion(); },
+            animateValue(obj, start, end, duration, suffix = "") {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerText = Math.floor(progress * (end - start) + start) + suffix;
+                    if (progress < 1) window.requestAnimationFrame(step); else obj.innerText = end + suffix;
+                };
+                window.requestAnimationFrame(step);
+            },
+            endGame() {
+                this.clearTimer(); const totalTimeSec = GameState.stats.timeUsed; const min = Math.floor(totalTimeSec / 60).toString().padStart(2, '0'); const sec = (totalTimeSec % 60).toString().padStart(2, '0'); const completed = GameState.energy > 0;
+                
+                const hsKey = `astro_m6_hs_${GameState.student.studentId}`;
+                let currentHs = parseInt(localStorage.getItem(hsKey) || 0);
+                if(GameState.score > 0) {
+                    let totalScore = currentHs + GameState.score;
+                    localStorage.setItem(hsKey, totalScore); 
+                    document.getElementById('display-high-score').innerText = totalScore;
+                }
+
+                PoseTrackingSys.isActive = false;
+                
+                document.getElementById('screen-game').classList.add('hidden-sys'); 
+                const screenResult = document.getElementById('screen-result'); screenResult.classList.remove('hidden-sys'); 
+                document.getElementById('camera-preview').classList.add('hidden-sys'); 
+                
+                const btnPrimary = document.getElementById('btn-primary-action');
+                btnPrimary.disabled = true; btnPrimary.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                const resultPanel = screenResult.querySelector('.glass-panel'); resultPanel.classList.remove('animate-popup'); void resultPanel.offsetWidth; resultPanel.classList.add('animate-popup');
+
+                document.getElementById('result-header').innerText = completed ? "MISSION COMPLETE!" : "MISSION FAILED"; 
+                document.getElementById('result-header').className = `text-2xl sm:text-5xl font-sci font-bold mb-2 tracking-widest ${completed ? 'text-cyan-400' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
+                document.getElementById('result-header').style.textShadow = completed ? '0 0 15px rgba(6,182,212,0.8)' : 'none';
+                document.getElementById('result-subheader').innerText = `STAGE ${GameState.currentStage} FINISHED`;
+
+                document.getElementById('result-time').innerText = `${min}:${sec}`; document.getElementById('result-correct').innerText = GameState.stats.correct; document.getElementById('result-wrong').innerText = GameState.stats.wrong;
+                const acc = Math.round((GameState.stats.correct / (GameState.stats.correct + GameState.stats.wrong)) * 100) || 0; 
+                
+                const rankIconEl = document.getElementById('result-icon'); const rankTextEl = document.getElementById('result-rank');
+                rankIconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-500"></i>'; rankIconEl.className = "text-4xl sm:text-6xl mb-2 sm:mb-4 text-slate-500 relative z-10";
+                rankTextEl.innerText = "CALCULATING..."; rankTextEl.className = "text-lg sm:text-xl font-bold text-slate-400 font-sci relative z-10 animate-pulse";
+                
+                AudioSys.playScoreRoll();
+                this.animateValue(document.getElementById('result-score'), 0, GameState.score, 1500); this.animateValue(document.getElementById('result-acc'), 0, acc, 1500, "%");
+
+                let rank = "FAILED", icon = '<i class="fa-solid fa-skull"></i>', color = "text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]";
+                if (completed) {
+                    if (acc >= 80) { rank = "EXCELLENT"; icon = '<i class="fa-solid fa-star"></i>'; color = "text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"; }
+                    else if (acc >= 60) { rank = "GOOD JOB"; icon = '<i class="fa-solid fa-thumbs-up"></i>'; color = "text-fuchsia-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)]"; }
+                    else { rank = "SURVIVOR"; icon = '<i class="fa-solid fa-shield-halved"></i>'; color = "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]"; }
+                }
+
+                if (completed && GameState.currentStage < 3) {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-forward mr-2"></i> NEXT STAGE';
+                    btnPrimary.onclick = () => GameSys.startCountdown(GameState.currentStage + 1);
+                } else if (completed && GameState.currentStage === 3) {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> FINISH ALL';
+                    btnPrimary.onclick = () => GameSys.returnToMenu();
+                } else {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-rotate-right mr-2"></i> RETRY STAGE';
+                    btnPrimary.onclick = () => GameSys.startCountdown(GameState.currentStage);
+                }
+                btnPrimary.disabled = false; btnPrimary.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                setTimeout(() => {
+                    if(completed) AudioSys.playTriumph(); else AudioSys.playError();
+                    rankIconEl.innerHTML = icon; rankIconEl.className = `text-4xl sm:text-6xl mb-2 sm:mb-4 ${color} relative z-10 animate-stamp`;
+                    rankTextEl.innerText = rank; rankTextEl.className = `text-lg sm:text-2xl font-bold ${color} font-sci relative z-10 animate-stamp`;
+                }, 1500);
+            }
+        };
+
+        window.onload = () => { 
+            DeviceSys.init();
+            GraphicsSys.init(); 
+            PoseTrackingSys.init(); 
+            GestureSys.init(); 
+            DragDropSys.init(); 
+            LoginSys.init(); 
+            
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    GraphicsSys.isGraphicsActive = false; PoseTrackingSys.isActive = false;
+                    if(AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
+                } else {
+                    GraphicsSys.isGraphicsActive = true;
+                    if(AudioSys.ctx && AudioSys.ctx.state === 'suspended' && !AudioSys.isMuted) AudioSys.ctx.resume();
+                    const isGameScreen = !document.getElementById('screen-game').classList.contains('hidden-sys');
+                    const isCountdown = !document.getElementById('screen-countdown').classList.contains('hidden-sys');
+                    if (isGameScreen || isCountdown) PoseTrackingSys.isActive = true;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
