@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ASTRO DEEP SPACE: ภารกิจสำรวจเอกภพ (ม.6)</title>
+    <title>ASTRO DEEP SPACE: ภารกิจสำรวจเอกภพและดวงดาว (ม.6)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,12 +17,11 @@
 
     <style>
         :root {
-            --neon-primary: #06b6d4; /* Cyan 500 */
-            --neon-secondary: #d946ef; /* Fuchsia 500 */
-            --neon-accent: #8b5cf6; /* Violet 500 */
-            --neon-danger: #ef4444; /* Red 500 */
-            --neon-warning: #f59e0b; /* Amber 500 */
-            --bg-dark: #020617; /* Slate 950 */
+            --neon-primary: #a855f7; /* Purple/Fuchsia */
+            --neon-secondary: #06b6d4; /* Cyan */
+            --neon-accent: #f472b6; /* Pink */
+            --neon-danger: #ef4444; /* Red */
+            --bg-dark: #030014; /* Very Deep Space */
         }
 
         body { 
@@ -39,7 +38,7 @@
         }
         .font-sci { font-family: 'Orbitron', sans-serif; } 
 
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
+        .glass-panel { background: rgba(10, 5, 30, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 1rem; box-shadow: 0 0 30px rgba(168, 85, 247, 0.1); }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
         
         #ui-layer { 
@@ -61,92 +60,82 @@
             .choice-card-v2 { min-height: 70px; padding: 0.75rem !important; }
         }
 
+        /* New Auth UI Styles */
         .auth-panel-v2 {
-            background: linear-gradient(135deg, rgba(2, 6, 23, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-            border: 2px solid rgba(6, 182, 212, 0.4);
-            box-shadow: 0 0 40px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.15);
+            background: linear-gradient(135deg, rgba(3, 0, 20, 0.9) 0%, rgba(15, 5, 40, 0.95) 100%);
+            border: 2px solid rgba(6, 182, 212, 0.6); /* Cyan glowing border */
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.3), inset 0 0 20px rgba(6, 182, 212, 0.1);
             border-radius: 20px;
             position: relative;
         }
-        .auth-panel-v2::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 20px; border: 1px solid rgba(217, 70, 239, 0.3); pointer-events: none;
-        }
         .auth-input-wrap {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: rgba(10, 20, 40, 0.5);
+            border: 1px solid rgba(6, 182, 212, 0.3);
             border-radius: 12px;
-            display: flex; align-items: center;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
         .auth-input-wrap:focus-within {
-            border-color: var(--neon-primary);
+            border-color: var(--neon-secondary);
             box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
-            background: rgba(6, 182, 212, 0.05);
+            background: rgba(10, 20, 40, 0.8);
         }
-        .auth-input-wrap.error { border-color: var(--neon-danger); box-shadow: 0 0 15px rgba(239,68,68,0.5); animation: shake 0.4s; }
-        .auth-icon {
-            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-            background: rgba(2, 6, 23, 0.8); border: 1px solid rgba(56, 189, 248, 0.5);
-            display: flex; align-items: center; justify-content: center; color: #38bdf8;
+        .auth-input {
+            background: transparent; border: none; color: white; outline: none; width: 100%; padding: 10px;
+            font-family: 'Kanit', sans-serif; letter-spacing: 1px;
         }
-        .cyber-input-v2 { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-family: 'Orbitron', sans-serif; }
-        .cyber-input-v2::placeholder { color: rgba(148, 163, 184, 0.4); font-family: 'Kanit', sans-serif; letter-spacing: normal;}
-        
-        .btn-auth {
-            background: linear-gradient(90deg, #d946ef, #06b6d4);
-            border-radius: 30px;
-            box-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative; overflow: hidden;
+        .auth-input::placeholder { color: rgba(148, 163, 184, 0.5); }
+        .auth-btn {
+            background: linear-gradient(90deg, #a855f7 0%, #06b6d4 100%);
+            border: none; border-radius: 30px; box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+            transition: all 0.3s;
         }
-        .btn-auth::after {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: skewX(-20deg); transition: 0.5s;
-        }
-        .btn-auth:hover::after { left: 150%; }
+        .auth-btn:hover { box-shadow: 0 0 30px rgba(6, 182, 212, 0.8); transform: scale(1.02); }
 
-        .typewriter { overflow: hidden; border-right: .15em solid var(--neon-primary); white-space: nowrap; margin: 0 auto; letter-spacing: .1em; animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite; }
-        @keyframes typing { from { width: 0 } to { width: 100% } }
-        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-primary); } }
+        .input-error-wrap { border-color: var(--neon-danger) !important; background: rgba(239, 68, 68, 0.1) !important; animation: shake 0.4s; }
+        .btn-loading { opacity: 0.8; pointer-events: none; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        .typewriter { overflow: hidden; border-right: .15em solid var(--neon-secondary); white-space: nowrap; margin: 0 auto; letter-spacing: .1em; animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-secondary); } }
 
         .countdown-pop { animation: pop-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 40% { transform: scale(1.2); opacity: 1; } 60% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         .countdown-go { animation: pop-go 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes pop-go { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 40px var(--neon-primary); } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes pop-go { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 40px var(--neon-secondary); } 100% { transform: scale(2); opacity: 0; } }
 
-        .circular-timer { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; z-index: 50; background: conic-gradient(var(--neon-primary) var(--timer-pct, 100%), rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(0,0,0,0.5); border: 4px solid var(--bg-dark); transition: background 1s linear; }
-        .circular-timer::before { content: ""; position: absolute; inset: 4px; background: rgba(15, 23, 42, 0.95); border-radius: 50%; box-shadow: inset 0 0 10px rgba(6,182,212,0.2); }
+        .circular-timer { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; z-index: 50; background: conic-gradient(var(--neon-secondary) var(--timer-pct, 100%), rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(6, 182, 212, 0.4), inset 0 0 10px rgba(0,0,0,0.5); border: 4px solid var(--bg-dark); transition: background 1s linear; }
+        .circular-timer::before { content: ""; position: absolute; inset: 4px; background: rgba(10, 5, 30, 0.95); border-radius: 50%; box-shadow: inset 0 0 10px rgba(6, 182, 212, 0.2); }
         .circular-timer-text { position: relative; z-index: 10; font-family: 'Orbitron', sans-serif; font-size: 1.75rem; font-weight: bold; color: white; }
         .timer-warning { background: conic-gradient(var(--neon-danger) var(--timer-pct, 100%), rgba(255,255,255,0.1) 0); box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulse-red-timer 1s infinite; }
         .timer-warning-text { color: var(--neon-danger); text-shadow: 0 0 10px rgba(239,68,68,0.8); }
 
-        #question-container { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.7); border-radius: 16px; margin-top: 30px; }
-        #question-container.success { background: rgba(16, 185, 129, 0.15); border-color: #10b981; border-style: solid; box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
+        #question-container { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 5, 40, 0.7); border-radius: 16px; margin-top: 30px; }
+        #question-container.success { background: rgba(16, 185, 129, 0.15); border-color: #34d399; border-style: solid; box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
         #question-container.error { background: rgba(239, 68, 68, 0.15); border-color: var(--neon-danger); border-style: solid; box-shadow: 0 0 40px rgba(239, 68, 68, 0.4); }
 
-        .choice-card-v2 { background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 4px solid var(--card-color); border-radius: 12px; color: #e2e8f0; transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); touch-action: none; }
+        .choice-card-v2 { background: linear-gradient(180deg, rgba(30, 20, 60, 0.8) 0%, rgba(10, 5, 30, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 4px solid var(--card-color); border-radius: 12px; color: #e2e8f0; transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); touch-action: none; }
         .choice-card-v2::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 0%, var(--card-color) 0%, transparent 60%); opacity: 0.1; transition: opacity 0.3s; pointer-events: none; }
         .choice-card-v2.hovered, .choice-card-v2:hover { transform: translateY(-5px); border-color: var(--card-color); box-shadow: 0 15px 25px rgba(0,0,0,0.6), 0 0 20px var(--card-color); color: white; }
         .choice-card-v2.hovered::before, .choice-card-v2:hover::before { opacity: 0.3; }
         .choice-card-v2.grabbing { transform: scale(1.05); background: var(--card-color); z-index: 100; box-shadow: 0 0 40px var(--card-color); }
-        .choice-card-v2.grabbing * { color: #000 !important; text-shadow: none !important; }
+        .choice-card-v2.grabbing * { color: #fff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important; }
 
         .circle-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.25rem; color: white; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); flex-shrink: 0; }
         .track-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: linear-gradient(90deg, transparent, rgba(6,182,212,0.5), transparent); box-shadow: 0 0 10px rgba(6,182,212,0.5); z-index: 1; pointer-events: none; }
         .jump-ripple { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 0; height: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); animation: ripple-anim 0.6s ease-out; pointer-events: none; z-index: 10; }
         @keyframes ripple-anim { 0% { width: 0px; height: 0px; opacity: 1; } 100% { width: 500px; height: 500px; opacity: 0; } }
 
-        #camera-preview { position: fixed; bottom: 20px; right: 20px; width: 160px; height: 120px; border: 2px solid var(--neon-primary); border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); z-index: 1000; transform: scaleX(-1); background: #000; }
+        #camera-preview { position: fixed; bottom: 20px; right: 20px; width: 160px; height: 120px; border: 2px solid var(--neon-secondary); border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); z-index: 1000; transform: scaleX(-1); background: #000; }
 
         @keyframes pulse-red-timer { 0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } 50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); } 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } }
+        
         @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes stamp-in { 0% { transform: scale(2.5) rotate(-15deg); opacity: 0; } 50% { transform: scale(0.9) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
         .animate-stamp { animation: stamp-in 0.5s ease-out forwards; }
+
+        .neon-text-primary { text-shadow: 0 0 15px rgba(6, 182, 212, 0.8); }
         .hidden-sys { display: none !important; }
     </style>
 </head>
@@ -158,69 +147,73 @@
 
     <div id="ui-layer" class="p-4 sm:p-8">
         
+        <!-- NEW LOGIN SCREEN -->
         <div id="screen-login" class="flex-1 flex flex-col items-center justify-center w-full min-h-[80vh] mobile-py-8">
-            <div class="auth-panel-v2 p-6 sm:p-10 text-center max-w-md w-full animate-fade-in-up mx-auto z-10 relative">
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <i class="fa-solid fa-planet-ringed text-3xl sm:text-4xl text-cyan-400"></i>
-                    <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest uppercase" style="text-shadow: 0 0 10px #06b6d4;">DEEP SPACE AUTH</h2>
+            <div class="auth-panel-v2 p-8 sm:p-10 max-w-md w-full animate-fade-in-up mx-auto text-center">
+                
+                <div class="text-6xl text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)] mb-2">
+                    <i class="fa-solid fa-earth-americas"></i>
                 </div>
-                <div class="text-fuchsia-300 mb-8 text-[10px] sm:text-xs tracking-widest typewriter">Exploring the Universe, Unlocking Your Knowledge</div>
-
+                
+                <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest neon-text-primary mb-1">DEEP SPACE AUTH</h2>
+                <div class="text-cyan-300 text-xs sm:text-sm font-light mb-6 opacity-80">Exploring the Universe, Unlocking Your Knowledge</div>
+                
                 <form id="login-form" onsubmit="LoginSys.handleLogin(event)" class="space-y-4">
+                    
+                    <!-- Student ID -->
                     <div class="text-left">
-                        <div id="wrap-studentid" class="auth-input-wrap">
-                            <div class="auth-icon"><i class="fa-solid fa-user"></i></div>
-                            <div class="w-full flex flex-col pl-3">
-                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">STUDENT ID (เลขประจำตัว)</label>
-                                <input type="text" id="inp-studentid" required placeholder="Enter ID" class="cyber-input-v2 text-sm sm:text-base">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-left">
-                        <div id="wrap-firstname" class="auth-input-wrap">
-                            <div class="auth-icon"><i class="fa-solid fa-rocket"></i></div>
-                            <div class="w-full flex flex-col pl-3">
-                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">ASTRONAUT ID (ชื่อจริง)</label>
-                                <input type="text" id="inp-firstname" required placeholder="Enter First Name" class="cyber-input-v2 text-sm sm:text-base">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-left">
-                        <div id="wrap-lastname" class="auth-input-wrap">
-                            <div class="auth-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                            <div class="w-full flex flex-col pl-3">
-                                <label class="text-[9px] text-slate-400 font-sci tracking-wider">CLEARANCE CODE (นามสกุล)</label>
-                                <input type="text" id="inp-lastname" required placeholder="Enter Last Name" class="cyber-input-v2 text-sm sm:text-base">
-                            </div>
+                        <label class="text-[10px] text-slate-300 uppercase tracking-widest ml-1 mb-1 block font-sci">STUDENT ID (เลขประจำตัว)</label>
+                        <div id="wrap-studentid" class="auth-input-wrap flex items-center px-4 py-2">
+                            <i class="fa-solid fa-user text-slate-400 mr-3"></i>
+                            <input type="text" id="inp-studentid" required placeholder="Enter ID" class="auth-input font-sci">
                         </div>
                     </div>
 
-                    <button type="submit" id="btn-login-submit" class="btn-auth w-full mt-6 px-6 py-3 sm:py-4 text-white font-sci font-bold tracking-widest text-sm sm:text-base transition-all hover:scale-105">
-                        <span id="btn-login-text"><i class="fa-solid fa-satellite-dish mr-2"></i> AUTHORIZE ACCESS &gt;&gt;</span>
+                    <!-- First Name -->
+                    <div class="text-left">
+                        <label class="text-[10px] text-slate-300 uppercase tracking-widest ml-1 mb-1 block font-sci">ASTRONAUT ID (ชื่อจริง)</label>
+                        <div id="wrap-firstname" class="auth-input-wrap flex items-center px-4 py-2">
+                            <i class="fa-solid fa-rocket text-slate-400 mr-3"></i>
+                            <input type="text" id="inp-firstname" required placeholder="Enter First Name" class="auth-input">
+                        </div>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="text-left">
+                        <label class="text-[10px] text-slate-300 uppercase tracking-widest ml-1 mb-1 block font-sci">CLEARANCE CODE (นามสกุล)</label>
+                        <div id="wrap-lastname" class="auth-input-wrap flex items-center px-4 py-2">
+                            <i class="fa-solid fa-shield-halved text-slate-400 mr-3"></i>
+                            <input type="text" id="inp-lastname" required placeholder="Enter Last Name" class="auth-input">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-login-submit" class="auth-btn w-full mt-6 py-4 text-white font-sci font-bold tracking-widest text-sm sm:text-base flex items-center justify-center gap-2">
+                        <span id="btn-login-text"><i class="fa-solid fa-satellite mr-2"></i> AUTHORIZE ACCESS <i class="fa-solid fa-angles-right ml-2"></i></span>
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-cyan-500/30 grid grid-cols-3 gap-2 text-center text-cyan-400">
-                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
-                        <i class="fa-solid fa-dharmachakra mb-1 text-lg"></i>
-                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">UNIVERSE<br><span class="text-[8px] font-normal text-slate-400">เอกภพและกาแล็กซี</span></span>
+                <!-- Footer Icons -->
+                <div class="flex justify-center gap-6 mt-8 pt-6 border-t border-cyan-900/50">
+                    <div class="text-center">
+                        <i class="fa-solid fa-atom text-cyan-400 text-xl mb-1 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]"></i>
+                        <div class="text-[8px] text-slate-400 uppercase">UNIVERSE<br>เอกภพและกาแล็กซี</div>
                     </div>
-                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
-                        <i class="fa-solid fa-star mb-1 text-lg"></i>
-                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">STARS<br><span class="text-[8px] font-normal text-slate-400">ดาวฤกษ์</span></span>
+                    <div class="text-center">
+                        <i class="fa-regular fa-star text-purple-400 text-xl mb-1 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"></i>
+                        <div class="text-[8px] text-slate-400 uppercase">STARS<br>ดาวฤกษ์</div>
                     </div>
-                    <div class="flex flex-col items-center opacity-70 hover:opacity-100 transition-opacity">
-                        <i class="fa-solid fa-solar-panel mb-1 text-lg"></i>
-                        <span class="text-[8px] sm:text-[10px] uppercase font-bold tracking-wider">SOLAR SYSTEM<br><span class="text-[8px] font-normal text-slate-400">ระบบสุริยะ</span></span>
+                    <div class="text-center">
+                        <i class="fa-solid fa-meteor text-pink-400 text-xl mb-1 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]"></i>
+                        <div class="text-[8px] text-slate-400 uppercase">SOLAR SYSTEM<br>ระบบสุริยะ</div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Welcome Back Overlay -->
-            <div id="welcome-back-msg" class="hidden-sys fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md">
-                <div class="text-5xl sm:text-6xl text-cyan-400 mb-4 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"><i class="fa-solid fa-user-astronaut"></i></div>
-                <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest mb-2">WELCOME BACK, CAPTAIN</h2>
-                <div id="welcome-back-name" class="text-xl sm:text-2xl text-fuchsia-400 font-sci font-bold">Name</div>
+                <!-- Welcome Back -->
+                <div id="welcome-back-msg" class="hidden-sys absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md rounded-2xl">
+                    <div class="text-5xl sm:text-6xl text-cyan-400 mb-4 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"><i class="fa-solid fa-satellite-dish"></i></div>
+                    <h2 class="text-2xl sm:text-3xl font-sci font-bold text-white tracking-widest mb-2">WELCOME BACK</h2>
+                    <div id="welcome-back-name" class="text-xl sm:text-2xl text-purple-400 font-sci font-bold">Name</div>
+                </div>
             </div>
         </div>
 
@@ -229,22 +222,22 @@
                 
                 <div class="flex items-center justify-between bg-slate-900/80 border border-slate-700 px-4 py-2 sm:px-5 sm:py-3 rounded-xl mb-4 sm:mb-6 w-full shadow-inner">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-fuchsia-500 to-cyan-500 border-2 border-white flex items-center justify-center text-white text-lg">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 border-2 border-cyan-300 flex items-center justify-center text-white text-lg">
                             <i class="fa-solid fa-user-astronaut"></i>
                         </div>
                         <div class="text-left">
-                            <div class="text-[8px] sm:text-[10px] text-cyan-400 tracking-widest uppercase font-bold">Commander Recognized</div>
+                            <div class="text-[8px] sm:text-[10px] text-slate-400 tracking-widest uppercase">Agent Recognized</div>
                             <div id="display-player-name" class="font-bold text-xs sm:text-base text-white font-sci">Unknown</div>
                         </div>
                     </div>
                     <div class="text-right border-l border-slate-700 pl-3">
                         <div class="text-[8px] sm:text-[10px] text-slate-400 tracking-widest uppercase">High Score</div>
-                        <div id="display-high-score" class="font-bold text-fuchsia-400 font-sci text-lg sm:text-xl">0</div>
+                        <div id="display-high-score" class="font-bold text-cyan-400 font-sci text-lg sm:text-xl">0</div>
                     </div>
                 </div>
 
-                <h1 class="text-3xl sm:text-5xl font-sci font-bold mb-1 text-white tracking-wider" style="text-shadow: 0 0 15px var(--neon-primary);">ASTRO DEEP SPACE</h1>
-                <h2 class="text-sm sm:text-lg text-fuchsia-300 mb-2 sm:mb-4 font-semibold">ภารกิจพิชิต เอกภพ และดวงดาว (ม.6)</h2>
+                <h1 class="text-3xl sm:text-5xl font-sci font-bold mb-1 text-white neon-text-primary tracking-wider">ASTRO DEEP SPACE</h1>
+                <h2 class="text-sm sm:text-lg text-purple-300 mb-2 sm:mb-4 font-semibold">ภารกิจพิชิต เอกภพ และดวงดาว (ม.6)</h2>
                 
                 <div class="flex items-center justify-between mb-4 bg-slate-900/60 p-2 sm:p-3 rounded-lg border border-slate-700/50 w-full max-w-md mx-auto desktop-only">
                     <div id="cam-status" class="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-2">
@@ -252,41 +245,41 @@
                     </div>
                 </div>
 
-                <div class="mb-4 p-3 bg-indigo-900/30 rounded border border-indigo-500/50 text-xs text-indigo-200" id="device-hint">Loading Hint...</div>
+                <div class="mb-4 p-3 bg-purple-900/30 rounded border border-purple-500/50 text-xs text-purple-200" id="device-hint">
+                    Loading Hint...
+                </div>
 
+                <!-- Stage Selection UI -->
                 <div class="w-full text-left mb-2">
                     <h3 class="text-slate-400 font-sci tracking-widest text-sm border-b border-slate-700 pb-1"><i class="fa-solid fa-map-location-dot mr-2"></i> SELECT MISSION STAGE</h3>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2 mb-6">
                     <!-- Stage 1 -->
-                    <div onclick="GameSys.startCountdown(1)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-fuchsia-500/50 hover:shadow-[0_0_20px_rgba(217,70,239,0.4)] group bg-slate-900/80">
-                        <div class="text-fuchsia-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-dharmachakra"></i></div>
+                    <div onclick="GameSys.startCountdown(1)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-pink-500/50 hover:shadow-[0_0_20px_rgba(244,114,182,0.4)] group bg-slate-900/80">
+                        <div class="text-pink-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-atom"></i></div>
                         <h3 class="text-white font-sci font-bold text-xl">STAGE 1</h3>
-                        <div class="text-fuchsia-300 text-xs mb-3 font-semibold">COSMIC ORIGIN</div>
-                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">กำเนิดเอกภพ บิกแบง และกาแล็กซี</div>
-                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                        <div class="text-pink-300 text-xs mb-3 font-semibold">COSMIC ORIGIN</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">ทฤษฎีบิกแบง การขยายตัวของเอกภพ และกาแล็กซี</div>
                     </div>
                     <!-- Stage 2 -->
-                    <div onclick="GameSys.startCountdown(2)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] group bg-slate-900/80">
-                        <div class="text-amber-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-star"></i></div>
+                    <div onclick="GameSys.startCountdown(2)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] group bg-slate-900/80">
+                        <div class="text-purple-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-regular fa-star"></i></div>
                         <h3 class="text-white font-sci font-bold text-xl">STAGE 2</h3>
-                        <div class="text-amber-300 text-xs mb-3 font-semibold">STELLAR ALCHEMY</div>
-                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">สมบัติและวิวัฒนาการของดาวฤกษ์</div>
-                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                        <div class="text-purple-300 text-xs mb-3 font-semibold">STELLAR ALCHEMY</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">วิวัฒนาการดาวฤกษ์ สมบัติ สี อุณหภูมิ และจุดจบ</div>
                     </div>
                     <!-- Stage 3 -->
                     <div onclick="GameSys.startCountdown(3)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] group bg-slate-900/80">
-                        <div class="text-cyan-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-solar-panel"></i></div>
+                        <div class="text-cyan-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-meteor"></i></div>
                         <h3 class="text-white font-sci font-bold text-xl">STAGE 3</h3>
                         <div class="text-cyan-300 text-xs mb-3 font-semibold">SOLAR NAVIGATOR</div>
-                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">ระบบสุริยะ และกฎของเคปเลอร์</div>
-                        <div class="text-cyan-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">กฎเคปเลอร์ ความลับและข้อเท็จจริงในระบบสุริยะ</div>
                     </div>
                 </div>
 
                 <div class="flex justify-center gap-4 sm:gap-6 w-full text-xs sm:text-sm">
-                    <button onclick="AudioSys.toggleSound()" id="btn-sound" class="text-cyan-400 hover:text-white transition flex items-center gap-2">
+                    <button onclick="AudioSys.toggleSound()" id="btn-sound" class="text-slate-400 hover:text-white transition flex items-center gap-2">
                         <i class="fa-solid fa-volume-high"></i> Sound
                     </button>
                     <button onclick="LoginSys.logout()" class="text-red-400 hover:text-red-300 transition flex items-center gap-2">
@@ -304,7 +297,7 @@
             <div class="glass-panel px-4 py-3 flex justify-between items-center mb-4 sm:mb-6 border-cyan-500/30">
                 <div class="flex items-center gap-2 sm:gap-3">
                     <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-full border-2 border-fuchsia-400 bg-slate-900 flex items-center justify-center">
-                        <i class="fa-solid fa-rocket text-base sm:text-2xl text-fuchsia-300"></i>
+                        <i class="fa-solid fa-user-astronaut text-base sm:text-2xl text-fuchsia-300"></i>
                     </div>
                     <div class="hidden sm:block">
                         <div class="text-[10px] text-slate-400 uppercase tracking-widest">ผู้เล่น</div>
@@ -314,17 +307,17 @@
 
                 <div class="flex items-center gap-3 sm:gap-8 bg-slate-900/80 px-3 sm:px-6 py-1 sm:py-2 rounded-full border border-slate-700 stats-container">
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-cyan-400 uppercase font-bold" id="ui-stage-indicator">STAGE 1</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold" id="ui-stage-indicator">STAGE 1</div>
                         <div class="font-bold text-white text-sm sm:text-lg"><span id="ui-qnum">1</span><span class="text-slate-500">/5</span></div>
                     </div>
                     <div class="w-px h-6 bg-slate-700 stats-divider"></div>
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-fuchsia-400 uppercase font-bold">คะแนนรวม</div>
-                        <div id="ui-score" class="font-bold text-white text-sm sm:text-xl font-sci">0</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">คะแนนรวม</div>
+                        <div id="ui-score" class="font-bold text-cyan-400 text-sm sm:text-xl font-sci">0</div>
                     </div>
                     <div class="w-px h-6 bg-slate-700 stats-divider"></div>
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-red-400 uppercase font-bold">พลังงานยาน</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">พลังงานด่านนี้</div>
                         <div id="ui-energy" class="flex gap-0.5 sm:gap-1 text-red-500 text-xs sm:text-base mt-1"></div>
                     </div>
                 </div>
@@ -342,7 +335,7 @@
                 </div>
 
                 <div class="w-full flex justify-between items-center absolute top-2 sm:top-4 left-0 px-4 sm:px-6">
-                    <div id="ui-category" class="text-cyan-300 text-[8px] sm:text-[10px] font-bold tracking-widest bg-cyan-900/30 px-2 py-0.5 rounded-full border border-cyan-800 uppercase">CAT</div>
+                    <div id="ui-category" class="text-fuchsia-300 text-[8px] sm:text-[10px] font-bold tracking-widest bg-fuchsia-900/30 px-2 py-0.5 rounded-full border border-fuchsia-800 uppercase">CAT</div>
                     <div id="ui-mode-text" class="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest desktop-only">โหมด: AI Pose + กระโดด</div>
                 </div>
                 
@@ -358,6 +351,7 @@
                 </div>
             </div>
 
+            <!-- Track line for desktop -->
             <div class="relative w-full h-10 sm:h-16 mb-2 sm:mb-4 z-20 desktop-only">
                 <div class="track-line"></div>
                 <div id="player-indicator" class="absolute top-1/2 -translate-y-1/2 w-10 h-10 sm:w-16 sm:h-16 bg-slate-900 rounded-full flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.5)] border-2 border-cyan-500 transition-all duration-100 transform -translate-x-1/2 z-10" style="left: 50%; display: none;">
@@ -368,21 +362,21 @@
             <div id="ui-choices" class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-6 mb-2 sm:mb-4 z-20 w-full relative"></div>
 
             <div class="text-center text-[10px] sm:text-xs text-slate-400 mt-2 tracking-wide bg-slate-900/50 py-1 sm:py-2 rounded-full border border-slate-700/50 inline-block px-4 mx-auto desktop-only">
-                <i class="fa-solid fa-arrows-left-right text-cyan-400 mr-2"></i> เดินไปที่คำตอบ แล้ว <b>"กระโดด"</b> เพื่อยืนยัน
+                <i class="fa-solid fa-arrows-left-right text-cyan-500 mr-2"></i> เดินไปที่คำตอบ แล้ว <b>"กระโดด"</b> เพื่อยืนยัน
             </div>
         </div>
 
         <div id="screen-result" class="hidden-sys absolute inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-lg pt-10 pb-10">
             <div class="flex items-center justify-center min-h-full px-4">
                 <div class="glass-panel p-6 sm:p-12 max-w-3xl w-full text-center relative border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)] mx-auto">
-                    <h1 class="text-2xl sm:text-5xl font-sci font-bold mb-2 text-cyan-400 tracking-widest" id="result-header">MISSION COMPLETE</h1>
-                    <div class="text-xs sm:text-xl text-fuchsia-300 mb-6 font-semibold uppercase" id="result-subheader">STAGE 1 FINISHED</div>
+                    <h1 class="text-2xl sm:text-5xl font-sci font-bold mb-2 text-cyan-400 tracking-widest neon-text-primary" id="result-header">MISSION COMPLETE</h1>
+                    <div class="text-xs sm:text-xl text-slate-400 mb-6 font-semibold uppercase" id="result-subheader">STAGE 1 FINISHED</div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
                         <div class="flex-1 bg-slate-900/80 p-4 sm:p-6 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
                             <div id="result-icon" class="text-4xl sm:text-6xl mb-4 text-cyan-400"><i class="fa-solid fa-user-astronaut"></i></div>
                             <div class="text-[10px] sm:text-sm text-slate-400 uppercase tracking-widest font-bold">STAGE RANK</div>
-                            <div id="result-rank" class="text-lg sm:text-2xl font-bold text-fuchsia-400 font-sci">CLEARED</div>
+                            <div id="result-rank" class="text-lg sm:text-2xl font-bold text-fuchsia-300 font-sci">CLEARED</div>
                         </div>
 
                         <div class="flex-1 grid grid-cols-2 gap-2 sm:gap-4 text-left">
@@ -403,6 +397,11 @@
                                 <div id="result-acc" class="font-sci text-xl sm:text-3xl text-fuchsia-400 font-bold">0%</div>
                             </div>
                         </div>
+                    </div>
+
+                    <div id="backend-status" class="mb-6 p-2 sm:p-3 rounded-lg border border-slate-700 bg-slate-900/90 text-xs sm:text-sm font-bold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-satellite-dish animate-pulse text-cyan-400"></i> 
+                        <span id="backend-status-text" class="text-cyan-300 font-sci">Transmitting Data...</span>
                     </div>
 
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
@@ -432,51 +431,143 @@
             }
         };
 
+        const LoginSys = {
+            init() {
+                const sId = localStorage.getItem('astro_studentid');
+                const fName = localStorage.getItem('astro_firstname');
+                const lName = localStorage.getItem('astro_lastname');
+                
+                this.setupValidation();
+                if(sId && fName && lName) {
+                    GameState.student.studentId = sId;
+                    GameState.student.firstName = fName;
+                    GameState.student.lastName = lName;
+                    this.showWelcomeBack(fName, lName);
+                }
+            },
+            setupValidation() {
+                const inputs = ['studentid', 'firstname', 'lastname'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(`inp-${id}`);
+                    const wrap = document.getElementById(`wrap-${id}`);
+                    if(el) { el.addEventListener('input', () => { wrap.classList.remove('input-error-wrap'); }); }
+                });
+            },
+            validateData(sId, fName, lName) {
+                let isValid = true;
+                if(!sId) { document.getElementById('wrap-studentid').classList.add('input-error-wrap'); isValid = false; }
+                if(!fName || fName.length < 2) { document.getElementById('wrap-firstname').classList.add('input-error-wrap'); isValid = false; }
+                if(!lName || lName.length < 2) { document.getElementById('wrap-lastname').classList.add('input-error-wrap'); isValid = false; }
+                return isValid;
+            },
+            async handleLogin(e) {
+                if(e) e.preventDefault();
+                const btn = document.getElementById('btn-login-submit');
+                const btnText = document.getElementById('btn-login-text');
+                const sId = document.getElementById('inp-studentid').value.trim();
+                const fName = document.getElementById('inp-firstname').value.trim();
+                const lName = document.getElementById('inp-lastname').value.trim();
+
+                if(!this.validateData(sId, fName, lName)) { if(AudioSys.ctx) AudioSys.playError(); return; }
+
+                btn.classList.add('btn-loading'); btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
+                if(AudioSys.ctx === null) AudioSys.init();
+                AudioSys.playTick();
+                await new Promise(r => setTimeout(r, 800));
+
+                btn.classList.remove('btn-loading'); btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i> ACCESS GRANTED';
+                AudioSys.playCorrect();
+
+                GameState.student.studentId = sId; GameState.student.firstName = fName; GameState.student.lastName = lName;
+                localStorage.setItem('astro_studentid', sId); localStorage.setItem('astro_firstname', fName); localStorage.setItem('astro_lastname', lName);
+
+                setTimeout(() => { btnText.innerHTML = '<i class="fa-solid fa-satellite mr-2"></i> AUTHORIZE ACCESS <i class="fa-solid fa-angles-right ml-2"></i>'; this.showMenu(); }, 500);
+            },
+            showWelcomeBack(fName, lName) {
+                const welcomeScreen = document.getElementById('welcome-back-msg');
+                document.getElementById('welcome-back-name').innerText = `${fName} ${lName}`;
+                welcomeScreen.classList.remove('hidden-sys');
+                if(AudioSys.ctx === null) AudioSys.init();
+                
+                setTimeout(() => {
+                    if(AudioSys.ctx) AudioSys.playCorrect();
+                    setTimeout(() => { welcomeScreen.classList.add('hidden-sys'); this.showMenu(); }, 600);
+                }, 800);
+            },
+            logout() {
+                localStorage.removeItem('astro_studentid'); localStorage.removeItem('astro_firstname'); localStorage.removeItem('astro_lastname');
+                GameState.student.studentId = ''; GameState.student.firstName = ''; GameState.student.lastName = '';
+                document.getElementById('screen-menu').classList.add('hidden-sys');
+                document.getElementById('screen-login').classList.remove('hidden-sys');
+                document.getElementById('inp-studentid').value = ''; document.getElementById('inp-firstname').value = ''; document.getElementById('inp-lastname').value = '';
+                AudioSys.stopBGM();
+            },
+            showMenu() {
+                document.getElementById('screen-login').classList.add('hidden-sys');
+                document.getElementById('screen-menu').classList.remove('hidden-sys');
+                document.getElementById('display-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
+                const hs = localStorage.getItem(`astro_hs_${GameState.student.studentId}`) || 0;
+                document.getElementById('display-high-score').innerText = hs;
+                if(AudioSys.ctx === null) AudioSys.init();
+                AudioSys.startBGM();
+            }
+        };
+
+        const BackendSys = {
+            url: "https://script.google.com/macros/s/AKfycbwLODVUGn4J8hSYsprK00HNqdB8-zAnafAZDnm2sOWm1YCndjkFjbsWy9FaDeHSBKYQ/exec",
+            async saveAttempt(payload) {
+                const statusIcon = document.querySelector('#backend-status i');
+                const statusText = document.getElementById('backend-status-text');
+                const btnPrimaryAction = document.getElementById('btn-primary-action');
+                
+                try {
+                    statusIcon.className = "fa-solid fa-satellite-dish animate-pulse text-cyan-400"; 
+                    statusText.innerText = "Transmitting Data..."; statusText.className = "text-cyan-300";
+                    
+                    const response = await fetch(this.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                    const text = await response.text(); let result; try { result = JSON.parse(text); } catch(e){ throw new Error("Invalid response format."); }
+                    if(result && result.success) { 
+                        statusIcon.className = "fa-solid fa-circle-check text-green-400"; 
+                        statusText.innerText = "Data Transmitted Successfully!"; statusText.className = "text-green-400"; 
+                    } 
+                    else throw new Error(result ? result.message : "Unknown Error");
+                } catch (error) {
+                    statusIcon.className = "fa-solid fa-triangle-exclamation text-red-400"; 
+                    statusText.innerText = "Transmission Failed (Local Data Kept)"; statusText.className = "text-red-400";
+                } finally { 
+                    btnPrimaryAction.disabled = false; btnPrimaryAction.classList.remove('opacity-50', 'cursor-not-allowed'); 
+                }
+            }
+        };
+
         const AudioSys = {
-            ctx: null, isMuted: false, bgmNodes: [], bgmGain: null, isBGMPlaying: false,
+            ctx: null, isMuted: false, bgmOsc1: null, bgmOsc2: null, bgmGain: null,
             init() { try { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); this.updateIcon(); } catch(e) {} },
             toggleSound() { 
                 this.isMuted = !this.isMuted; 
                 if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); 
-                if (this.isMuted) { this.stopBGM(); } else { this.startBGM(); }
                 this.updateIcon(); 
-            },
-            startBGM() {
-                if (this.isMuted || !this.ctx || this.isBGMPlaying) return;
-                this.isBGMPlaying = true;
-                
-                this.bgmGain = this.ctx.createGain();
-                this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
-                this.bgmGain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + 3); 
-                this.bgmGain.connect(this.ctx.destination);
-
-                const osc1 = this.ctx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 65.41;
-                const osc2 = this.ctx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 98.00;
-                const osc3 = this.ctx.createOscillator(); osc3.type = 'triangle'; osc3.frequency.value = 130.81;
-
-                const lfo = this.ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.1; 
-                const lfoGain = this.ctx.createGain(); lfoGain.gain.value = 0.5;
-                lfo.connect(lfoGain);
-                
-                osc1.connect(this.bgmGain); osc2.connect(this.bgmGain);
-                
-                const osc3Gain = this.ctx.createGain(); osc3Gain.gain.value = 0.2;
-                lfoGain.connect(osc3Gain.gain); osc3.connect(osc3Gain); osc3Gain.connect(this.bgmGain);
-
-                osc1.start(); osc2.start(); osc3.start(); lfo.start();
-                this.bgmNodes = [osc1, osc2, osc3, lfo, lfoGain, osc3Gain];
-            },
-            stopBGM() {
-                this.isBGMPlaying = false;
-                if(this.bgmGain) {
-                    this.bgmGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5); 
-                    setTimeout(() => {
-                        this.bgmNodes.forEach(node => { try { node.stop(); } catch(e){} try { node.disconnect(); } catch(e){} });
-                        this.bgmNodes = []; if(this.bgmGain) this.bgmGain.disconnect(); this.bgmGain = null;
-                    }, 1600);
-                }
+                if(this.isMuted) this.stopBGM(); 
+                else if(!document.getElementById('screen-menu').classList.contains('hidden-sys') || !document.getElementById('screen-game').classList.contains('hidden-sys')) this.startBGM();
             },
             updateIcon() { const btn = document.getElementById('btn-sound'); if(btn) btn.innerHTML = this.isMuted ? '<i class="fa-solid fa-volume-xmark text-xl"></i> Sound' : '<i class="fa-solid fa-volume-high text-xl"></i> Sound'; },
+            startBGM() {
+                if(this.isMuted || !this.ctx || this.bgmOsc1) return;
+                this.bgmGain = this.ctx.createGain(); this.bgmGain.gain.value = 0.08;
+                this.bgmGain.connect(this.ctx.destination);
+
+                this.bgmOsc1 = this.ctx.createOscillator(); this.bgmOsc1.type = 'sine'; this.bgmOsc1.frequency.value = 65.41; // C2
+                this.bgmOsc2 = this.ctx.createOscillator(); this.bgmOsc2.type = 'triangle'; this.bgmOsc2.frequency.value = 98.00; // G2
+
+                this.bgmOsc1.connect(this.bgmGain); this.bgmOsc2.connect(this.bgmGain);
+                this.bgmOsc1.start(); this.bgmOsc2.start();
+            },
+            stopBGM() {
+                if(this.bgmGain) {
+                    this.bgmGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 1);
+                    setTimeout(() => { if(this.bgmOsc1) { this.bgmOsc1.stop(); this.bgmOsc1.disconnect(); this.bgmOsc1 = null; } if(this.bgmOsc2) { this.bgmOsc2.stop(); this.bgmOsc2.disconnect(); this.bgmOsc2 = null; } }, 1000);
+                }
+            },
             playTone(freq, type, duration) { 
                 if(this.isMuted || !this.ctx) return; 
                 const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); 
@@ -492,105 +583,24 @@
             playTriumph() { if(this.isMuted || !this.ctx) return; this.playTone(523.25, 'sine', 0.1); setTimeout(() => this.playTone(659.25, 'sine', 0.1), 150); setTimeout(() => this.playTone(783.99, 'sine', 0.4), 300); }
         };
 
-        const LoginSys = {
-            init() {
-                const sId = localStorage.getItem('astro_m6_studentid');
-                const fName = localStorage.getItem('astro_m6_firstname');
-                const lName = localStorage.getItem('astro_m6_lastname');
-                
-                this.setupValidation();
-                if(sId && fName && lName) {
-                    GameState.student.studentId = sId;
-                    GameState.student.firstName = fName;
-                    GameState.student.lastName = lName;
-                    this.showWelcomeBack(fName, lName);
-                }
-            },
-            setupValidation() {
-                const inputs = ['studentid', 'firstname', 'lastname'];
-                inputs.forEach(id => {
-                    const el = document.getElementById(`inp-${id}`);
-                    const wrap = document.getElementById(`wrap-${id}`);
-                    if(el && wrap) { el.addEventListener('input', () => { wrap.classList.remove('error'); }); }
-                });
-            },
-            validateData(sId, fName, lName) {
-                let isValid = true;
-                if(!sId) { document.getElementById('wrap-studentid').classList.add('error'); isValid = false; }
-                if(!fName || fName.length < 2) { document.getElementById('wrap-firstname').classList.add('error'); isValid = false; }
-                if(!lName || lName.length < 2) { document.getElementById('wrap-lastname').classList.add('error'); isValid = false; }
-                return isValid;
-            },
-            async handleLogin(e) {
-                if(e) e.preventDefault();
-                const btn = document.getElementById('btn-login-submit');
-                const btnText = document.getElementById('btn-login-text');
-                const sId = document.getElementById('inp-studentid').value.trim();
-                const fName = document.getElementById('inp-firstname').value.trim();
-                const lName = document.getElementById('inp-lastname').value.trim();
-
-                if(!this.validateData(sId, fName, lName)) { if(AudioSys.ctx) AudioSys.playError(); return; }
-
-                btn.style.opacity = '0.8'; btn.style.pointerEvents = 'none'; btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
-                if(AudioSys.ctx) AudioSys.playTick();
-                await new Promise(r => setTimeout(r, 800));
-
-                btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i> ACCESS GRANTED';
-                if(AudioSys.ctx) AudioSys.playCorrect();
-
-                GameState.student.studentId = sId; GameState.student.firstName = fName; GameState.student.lastName = lName;
-                localStorage.setItem('astro_m6_studentid', sId); localStorage.setItem('astro_m6_firstname', fName); localStorage.setItem('astro_m6_lastname', lName);
-
-                setTimeout(() => { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; btnText.innerHTML = '<i class="fa-solid fa-satellite-dish mr-2"></i> AUTHORIZE ACCESS &gt;&gt;'; this.showMenu(); }, 500);
-            },
-            showWelcomeBack(fName, lName) {
-                const welcomeScreen = document.getElementById('welcome-back-msg');
-                document.getElementById('welcome-back-name').innerText = `${fName} ${lName}`;
-                welcomeScreen.classList.remove('hidden-sys');
-                if(AudioSys.ctx === null) AudioSys.init();
-                
-                setTimeout(() => {
-                    if(AudioSys.ctx) AudioSys.playCorrect();
-                    setTimeout(() => { welcomeScreen.classList.add('hidden-sys'); this.showMenu(); }, 600);
-                }, 800);
-            },
-            logout() {
-                AudioSys.stopBGM();
-                localStorage.removeItem('astro_m6_studentid'); localStorage.removeItem('astro_m6_firstname'); localStorage.removeItem('astro_m6_lastname');
-                GameState.student.studentId = ''; GameState.student.firstName = ''; GameState.student.lastName = '';
-                document.getElementById('screen-menu').classList.add('hidden-sys');
-                document.getElementById('screen-login').classList.remove('hidden-sys');
-                document.getElementById('inp-studentid').value = ''; document.getElementById('inp-firstname').value = ''; document.getElementById('inp-lastname').value = '';
-            },
-            showMenu() {
-                document.getElementById('screen-login').classList.add('hidden-sys');
-                document.getElementById('screen-menu').classList.remove('hidden-sys');
-                document.getElementById('display-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
-                const hs = localStorage.getItem(`astro_m6_hs_${GameState.student.studentId}`) || 0;
-                document.getElementById('display-high-score').innerText = hs;
-                if(AudioSys.ctx === null) AudioSys.init();
-                AudioSys.startBGM();
-            }
-        };
-
         const GraphicsSys = {
             scene: null, camera: null, renderer: null, pivot: null, stars1: null, stars2: null, stars3: null, isGraphicsActive: true,
             init() {
                 const canvas = document.getElementById('bg-canvas');
-                this.scene = new THREE.Scene(); this.scene.fog = new THREE.FogExp2(0x020617, 0.002);
+                this.scene = new THREE.Scene(); this.scene.fog = new THREE.FogExp2(0x030014, 0.002);
                 this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); this.camera.position.z = 35;
                 this.renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); this.renderer.setSize(window.innerWidth, window.innerHeight);
                 this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
                 
                 this.pivot = new THREE.Group(); this.scene.add(this.pivot);
-                const sun = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); this.pivot.add(sun);
+                const sun = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), new THREE.MeshBasicMaterial({ color: 0xa855f7, wireframe: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending })); this.pivot.add(sun);
 
                 for(let i=0; i<4; i++) {
                     const radius = 8 + (i*4);
                     const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.02, 16, 100), new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.3 }));
                     ring.rotation.x = Math.PI / 2 + (Math.random() * 0.2); this.pivot.add(ring);
                     const planetOrbit = new THREE.Group(); planetOrbit.rotation.y = Math.random() * Math.PI * 2;
-                    const planet = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random()*0.5, 8, 8), new THREE.MeshBasicMaterial({ color: i%2==0?0x06b6d4:0xd946ef }));
+                    const planet = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random()*0.5, 8, 8), new THREE.MeshBasicMaterial({ color: i%2==0?0x06b6d4:0xf472b6 }));
                     planet.position.x = radius; planetOrbit.add(planet); planetOrbit.userData = { speed: 0.005 + (Math.random() * 0.01) }; this.pivot.add(planetOrbit);
                 }
                 this.pivot.position.set(0, 0, -20); this.pivot.rotation.x = 0.2;
@@ -604,8 +614,8 @@
                 
                 const starMulti = DeviceSys.isMobile ? 0.2 : 1; 
                 this.stars1 = createStars(1000 * starMulti, 0.15, 0xffffff, 0.8);
-                this.stars2 = createStars(800 * starMulti, 0.25, 0x06b6d4, 0.5);
-                this.stars3 = createStars(400 * starMulti, 0.4, 0xd946ef, 0.3);
+                this.stars2 = createStars(800 * starMulti, 0.25, 0xc084fc, 0.5);
+                this.stars3 = createStars(400 * starMulti, 0.4, 0x06b6d4, 0.3);
                 this.scene.add(this.stars1, this.stars2, this.stars3);
 
                 window.addEventListener('resize', () => { this.camera.aspect = window.innerWidth / window.innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(window.innerWidth, window.innerHeight); });
@@ -644,7 +654,7 @@
                         
                         if (results.poseLandmarks) {
                             const landmarks = results.poseLandmarks;
-                            drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS || POSE_CONNECTIONS, {color: '#d946ef', lineWidth: 2});
+                            drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS || POSE_CONNECTIONS, {color: '#a855f7', lineWidth: 2});
                             drawLandmarks(canvasCtx, landmarks, {color: '#06b6d4', lineWidth: 1, radius: 2});
 
                             const bodyCenterX = (landmarks[11].x + landmarks[12].x) / 2;
@@ -673,7 +683,7 @@
                         width: 320, height: 240 
                     });
                     await this.camera.start(); this.isReady = true;
-                    statusEl.innerHTML = '<span class="text-cyan-400"><i class="fa-solid fa-video"></i> Camera Active</span>';
+                    statusEl.innerHTML = '<span class="text-green-400"><i class="fa-solid fa-video"></i> Camera Active</span>';
                 } catch (error) { this.enableFallbackMode(); }
             },
             enableFallbackMode() {
@@ -741,59 +751,71 @@
         };
 
         const QuestionBank = [
-            // ================= STAGE 1: เอกภพและกาแล็กซี (Level 1) =================
-            { id: "M6_1_01", level: 1, q: "ทฤษฎีใดอธิบายการกำเนิดของเอกภพได้ดีที่สุดและเป็นที่ยอมรับมากที่สุดในปัจจุบัน?", c: ["ทฤษฎีสภาวะคงที่", "ทฤษฎีบิกแบง", "ทฤษฎีสัมพัทธภาพ"], a: 1, cat: "กำเนิดเอกภพ", desc: "ทฤษฎีบิกแบงได้รับการยอมรับมากที่สุด เนื่องจากมีหลักฐานสนับสนุนคือ การขยายตัวของเอกภพ และไมโครเวฟพื้นหลังอวกาศ" },
-            { id: "M6_1_02", level: 1, q: "การรวมตัวกันของ 'อนุภาค' และ 'ปฏิอนุภาค' ในช่วงแรกของการกำเนิดเอกภพ จะทำให้เกิดสิ่งใดขึ้น?", c: ["นิวเคลียสของฮีเลียม", "พลังงาน (โฟตอน)", "อะตอมของไฮโดรเจน"], a: 1, cat: "วิวัฒนาการเอกภพ", desc: "เมื่ออนุภาคและปฏิอนุภาครวมตัวกันจะทำลายล้างกันเองและเปลี่ยนเป็นพลังงานในรูปของรังสีแกมมา (โฟตอน)" },
-            { id: "M6_1_03", level: 1, q: "ฮับเบิลค้นพบความสัมพันธ์ระหว่างระยะทางของกาแล็กซีที่อยู่ห่างจากโลกกับสิ่งใด?", c: ["ความเร็วในการเคลื่อนที่ถอยห่าง", "อุณหภูมิพื้นหลังของเอกภพ", "มวลของกาแล็กซี"], a: 0, cat: "กฎของฮับเบิล", desc: "กฎของฮับเบิลระบุว่า ความเร็วถอยห่างของกาแล็กซีแปรผันตรงกับระยะห่างจากผู้สังเกต" },
-            { id: "M6_1_04", level: 1, q: "ปรากฏการณ์ 'เลื่อนทางแดง (Redshift)' ของสเปกตรัมที่สังเกตได้จากกาแล็กซีต่าง ๆ บ่งชี้ถึงสิ่งใด?", c: ["เอกภพกำลังขยายตัว", "เอกภพกำลังหดตัว", "เอกภพมีอุณหภูมิลดลง"], a: 0, cat: "หลักฐานบิกแบง", desc: "การเลื่อนทางแดงของสเปกตรัมแสดงให้เห็นว่า กาแล็กซีต่างๆ กำลังเคลื่อนที่ถอยห่างออกจากเรา (ความยาวคลื่นยืดออก)" },
-            { id: "M6_1_05", level: 1, q: "หากกาแล็กซี A อยู่ห่างโลก 100 Mpc และกาแล็กซี B อยู่ห่าง 200 Mpc ข้อใดสรุปตามกฎของฮับเบิลได้ถูกต้อง?", c: ["กาแล็กซี A ถอยห่างเร็วกว่า B", "กาแล็กซี B ถอยห่างเร็วกว่า A เป็นสองเท่า", "ทั้งสองถอยห่างด้วยความเร็วเท่ากัน"], a: 1, cat: "กฎของฮับเบิล", desc: "ตามสมการ v = H0d หากระยะทาง (d) มากกว่า 2 เท่า ความเร็วถอยห่าง (v) ก็จะมากกว่า 2 เท่าตามไปด้วย" },
-            { id: "M6_1_06", level: 1, q: "หากนักวิทยาศาสตร์พบว่า ค่าคงตัวของฮับเบิล (H0) มีค่า 'มากกว่า' ที่เคยประเมินไว้ จะส่งผลอย่างไรต่อการคำนวณอายุเอกภพ?", c: ["อายุเอกภพที่คำนวณได้จะน้อยลง", "อายุเอกภพที่คำนวณได้จะมากขึ้น", "อายุเอกภพจะไม่เปลี่ยนแปลง"], a: 0, cat: "อายุเอกภพ", desc: "อายุของเอกภพแปรผกผันกับค่าคงตัวฮับเบิล (t = 1/H0) ดังนั้นถ้า H0 มากขึ้น อายุที่ได้จะน้อยลง" },
-            { id: "M6_1_07", level: 1, q: "องค์ประกอบหลักที่คิดเป็นสัดส่วนมากที่สุดของเอกภพในปัจจุบันคืออะไร?", c: ["สสารธรรมดา (ดาวฤกษ์ กาแล็กซี)", "พลังงานมืดและสสารมืด", "หลุมดำมวลยิ่งยวด"], a: 1, cat: "องค์ประกอบเอกภพ", desc: "เอกภพประกอบด้วยพลังงานมืดประมาณ 68% สสารมืด 27% และสสารธรรมดา (สิ่งที่เรามองเห็น) เพียง 5% เท่านั้น" },
-            { id: "M6_1_08", level: 1, q: "ตามทฤษฎี ปัจจัยใดที่ทำให้กาแล็กซีแต่ละแห่งมีรูปร่างแตกต่างกัน (เช่น เป็นกังหัน หรือ ทรงรี)?", c: ["ปริมาณของหลุมดำ", "ความเร็วในการก่อตัวของสสารและกลุ่มแก๊ส", "อุณหภูมิของไมโครเวฟพื้นหลัง"], a: 1, cat: "กำเนิดกาแล็กซี", desc: "อัตราความเร็วในการยุบตัวก่อตัวและหมุนวนของกลุ่มแก๊สและสสาร มีผลต่อรูปร่างของกาแล็กซีที่เกิดขึ้น" },
-            { id: "M6_1_09", level: 1, q: "กาแล็กซีทางช้างเผือก (Milky Way) ที่เราอาศัยอยู่ จัดเป็นกาแล็กซีประเภทใด?", c: ["กาแล็กซีกังหันแบบมีคาน (SB)", "กาแล็กซีรี (E)", "กาแล็กซีกังหันธรรมดา (S)"], a: 0, cat: "กาแล็กซี", desc: "ทางช้างเผือกเป็นกาแล็กซีกังหันแบบมีคาน โดยมีศูนย์กลางคล้ายคานและมีแขนกังหันยื่นออกมา" },
-            { id: "M6_1_10", level: 1, q: "บริเวณใดเป็นศูนย์กลางของกาแล็กซีทางช้างเผือก ที่มีดาวฤกษ์หนาแน่น และมีหลุมดำมวลยิ่งยวดตั้งอยู่?", c: ["บริเวณแขนเพอร์ซิอุส (Spiral Arm)", "กระจุกดาวเปิดบริเวณเฮโล (Halo)", "บริเวณดุมกาแล็กซี (Bulge / Nucleus)"], a: 2, cat: "กาแล็กซี", desc: "ดุมกาแล็กซีเป็นส่วนป่องตรงกลางที่มีดาวฤกษ์อายุมากอยู่หนาแน่น และมีหลุมดำมวลยิ่งยวด (Sagittarius A*) ซ่อนอยู่" },
-            { id: "M6_1_11", level: 1, q: "ตามลำดับวิวัฒนาการของเอกภพ นิวเคลียสของ 'ธาตุเบา' ชนิดแรกๆ ที่เกิดขึ้นจากการรวมตัวของโปรตอนและนิวตรอน คือธาตุใด?", c: ["ออกซิเจน และ คาร์บอน", "ไฮโดรเจน และ ฮีเลียม", "ไนโตรเจน และ นีออน"], a: 1, cat: "วิวัฒนาการเอกภพ", desc: "ในช่วง 3 นาทีแรก อุณหภูมิลดลงพอที่โปรตอนและนิวตรอนจะรวมตัวกันเป็นธาตุตั้งต้นที่เบาที่สุด คือไฮโดรเจนและฮีเลียม" },
+            // ==========================================
+            // STAGE 1: COSMIC ORIGIN (11 Qs)
+            // ==========================================
+            { id: "M6_1_01", level: 1, q: "ทฤษฎีใดอธิบายการกำเนิดของเอกภพได้ดีที่สุดและเป็นที่ยอมรับมากที่สุดในปัจจุบัน?", c: ["ทฤษฎีสภาวะคงที่ (Steady State)", "ทฤษฎีบิกแบง (Big Bang)", "ทฤษฎีสัมพัทธภาพ (Relativity)"], a: 1, cat: "กำเนิดเอกภพ", desc: "ทฤษฎีบิกแบงได้รับการยอมรับมากที่สุด เนื่องจากมีหลักฐานสนับสนุนคือ การขยายตัวของเอกภพ และไมโครเวฟพื้นหลังอวกาศ" },
+            { id: "M6_1_02", level: 1, q: "การรวมตัวกันของ 'อนุภาค' และ 'ปฏิอนุภาค' ในช่วงแรกของการกำเนิดเอกภพ จะทำให้เกิดสิ่งใดขึ้น?", c: ["กาแล็กซีรุ่นแรก", "พลังงาน (โฟตอน)", "อะตอมของไฮโดรเจน"], a: 1, cat: "กำเนิดเอกภพ", desc: "เมื่ออนุภาคและปฏิอนุภาคชนกัน จะเกิดการประลัย (Annihilation) เปลี่ยนมวลสารกลายเป็นพลังงานในรูปของโฟตอน" },
+            { id: "M6_1_03", level: 1, q: "ตามลำดับวิวัฒนาการของเอกภพ นิวเคลียสของ 'ธาตุเบา' ชนิดแรกๆ ที่เกิดขึ้นคือธาตุใด?", c: ["ไฮโดรเจน และ ฮีเลียม", "ออกซิเจน และ คาร์บอน", "ไนโตรเจน และ นีออน"], a: 0, cat: "กำเนิดเอกภพ", desc: "ไฮโดรเจนและฮีเลียมเป็นธาตุตั้งต้นที่เบาที่สุดและเกิดก่อนธาตุอื่นๆ ในเอกภพ" },
+            { id: "M6_1_04", level: 1, q: "ปรากฏการณ์ 'เลื่อนทางแดง (Redshift)' ของสเปกตรัมที่สังเกตได้จากกาแล็กซีต่าง ๆ บ่งชี้ถึงสิ่งใด?", c: ["เอกภพกำลังขยายตัว", "เอกภพกำลังหดตัว", "เอกภพมีอุณหภูมิลดลง"], a: 0, cat: "หลักฐานบิกแบง", desc: "การเลื่อนทางแดงแสดงให้เห็นว่า กาแล็กซีต่างๆ กำลังเคลื่อนที่ถอยห่างออกจากเรา ซึ่งเป็นหลักฐานว่าเอกภพกำลังขยายตัว" },
+            { id: "M6_1_05", level: 1, q: "ฮับเบิล (Hubble) ค้นพบความสัมพันธ์ระหว่างระยะทางของกาแล็กซีที่อยู่ห่างจากโลกกับสิ่งใด?", c: ["อุณหภูมิพื้นหลังของเอกภพ", "ความเร็วในการเคลื่อนที่ถอยห่าง", "มวลของหลุมดำกลางกาแล็กซี"], a: 1, cat: "กฎของฮับเบิล", desc: "กฎของฮับเบิลระบุว่า กาแล็กซีที่อยู่ไกลออกไป จะเคลื่อนที่ถอยห่างจากเราด้วยความเร็วที่มากกว่า" },
+            { id: "M6_1_06", level: 1, q: "หากกาแล็กซี A อยู่ห่างโลก 100 Mpc และกาแล็กซี B อยู่ห่าง 200 Mpc ข้อใดสรุปได้ถูกต้องจากกฎของฮับเบิล?", c: ["กาแล็กซี B เคลื่อนที่ถอยห่างเร็วกว่า A เป็นสองเท่า", "กาแล็กซี A และ B เคลื่อนที่ด้วยความเร็วเท่ากัน", "กาแล็กซี A เคลื่อนที่ถอยห่างเร็วกว่า B"], a: 0, cat: "กฎของฮับเบิล", desc: "ความเร็วแปรผันตรงกับระยะทาง B อยู่ไกลกว่า A สองเท่า จึงถอยห่างเร็วกว่าสองเท่า" },
+            { id: "M6_1_07", level: 1, q: "หากพบว่าค่าคงตัวของฮับเบิล (H0) มีค่า 'มากกว่า' ที่เคยประเมินไว้ ข้อมูลนี้จะส่งผลต่อการคำนวณอายุของเอกภพอย่างไร?", c: ["อายุของเอกภพจะไม่เปลี่ยนแปลง", "อายุของเอกภพจะคำนวณได้น้อยลง", "อายุของเอกภพจะคำนวณได้มากขึ้น"], a: 1, cat: "กฎของฮับเบิล", desc: "อายุของเอกภพแปรผกผันกับค่าคงตัวฮับเบิล (t = 1/H0) ดังนั้นถ้า H0 มากขึ้น อายุที่ได้จะน้อยลง" },
+            { id: "M6_1_08", level: 1, q: "องค์ประกอบหลักของเอกภพในปัจจุบันคืออะไร?", c: ["ดาวฤกษ์และกาแล็กซี", "สสารธรรมดา", "พลังงานมืดและสสารมืด"], a: 2, cat: "องค์ประกอบเอกภพ", desc: "เอกภพปัจจุบันประกอบด้วยพลังงานมืด (68%) และสสารมืด (27%) ส่วนสสารธรรมดามีเพียง 5%" },
+            { id: "M6_1_09", level: 1, q: "กาแล็กซีทางช้างเผือก (Milky Way) ที่เราอาศัยอยู่ จัดเป็นกาแล็กซีประเภทใด?", c: ["กาแล็กซีรี (Elliptical)", "กาแล็กซีกังหันแบบมีคาน (Barred Spiral)", "กาแล็กซีเลนส์ (Lenticular)"], a: 1, cat: "กาแล็กซี", desc: "ทางช้างเผือกเป็นกาแล็กซีกังหันที่มีโครงสร้างตรงกลางเป็นรูปแท่งหรือคาน (Barred Spiral Galaxy)" },
+            { id: "M6_1_10", level: 1, q: "ศูนย์กลางของกาแล็กซีทางช้างเผือกที่มีดาวฤกษ์หนาแน่น ตั้งอยู่ในบริเวณใดตามลำดับ?", c: ["ดุมกาแล็กซี (Bulge)", "บริเวณฮาโล (Halo)", "แขนกังหัน (Spiral Arm)"], a: 0, cat: "กาแล็กซี", desc: "ใจกลางกาแล็กซีเรียกว่า นิวเคลียส หรือ ดุมกาแล็กซี (Bulge) เป็นบริเวณที่มีดาวฤกษ์อายุมากรวมกันหนาแน่น" },
+            { id: "M6_1_11", level: 1, q: "ตามทฤษฎีการเกิดรูปทรงของกาแล็กซี สิ่งใดเป็นปัจจัยสำคัญที่ทำให้กาแล็กซีแต่ละแห่งมีรูปร่างแตกต่างกัน?", c: ["ความเร็วในการก่อตัวของสสารและแก๊ส", "ปริมาณของหลุมดำ", "อุณหภูมิของไมโครเวฟพื้นหลัง"], a: 0, cat: "กาแล็กซี", desc: "อัตราการหมุนและการก่อตัวของดาวฤกษ์จากกลุ่มแก๊ส เป็นปัจจัยหลักที่กำหนดรูปร่างของกาแล็กซีว่าจะเป็นแบบรีหรือแบบกังหัน" },
 
-            // ================= STAGE 2: ดาวฤกษ์ (Level 2) =================
-            { id: "M6_2_01", level: 2, q: "ดาวฤกษ์เกิดขึ้นจากการยุบตัวของสสารใดภายในเอกภพ?", c: ["ธาตุหนักภายในซากซูเปอร์โนวา", "กลุ่มฝุ่นและแก๊สภายในเนบิวลา", "อนุภาคนิวตริโนจำนวนมาก"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "ดาวฤกษ์เกิดจากการยุบตัวของกลุ่มแก๊สและฝุ่น (ไฮโดรเจนเป็นหลัก) ในเนบิวลาภายใต้แรงโน้มถ่วงของตนเอง" },
-            { id: "M6_2_02", level: 2, q: "ในช่วงที่ 'ดาวฤกษ์ก่อนเกิด' (Protostar) กำลังวิวัฒนาการไปเป็น 'ดาวฤกษ์สมบูรณ์' เกิดการเปลี่ยนแปลงที่สำคัญที่สุดอย่างไร?", c: ["ขนาดขยายใหญ่ขึ้น อุณหภูมิลดลง", "ขนาดหดเล็กลง อุณหภูมิและความดันเพิ่มขึ้น", "ขนาดคงที่ อุณหภูมิค่อยๆ ลดลง"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "แรงโน้มถ่วงทำให้ดาวหดตัว ความดันและอุณหภูมิที่แกนกลางจะสูงขึ้นถึง 15 ล้านเคลวิน จนจุดชนวนฟิวชันหลอมไฮโดรเจนได้" },
-            { id: "M6_2_03", level: 2, q: "หากผู้สังเกตบนโลกมองดูดวงดาวบนท้องฟ้า ดาวฤกษ์ในข้อใดต่อไปนี้จะปรากฏให้เห็น 'สว่างน้อยที่สุด'?", c: ["โชติมาตรปรากฏ -1.46", "โชติมาตรปรากฏ 1.25", "โชติมาตรปรากฏ 5.00"], a: 2, cat: "ความสว่าง", desc: "โชติมาตร (Magnitude) ยิ่งมีค่าบวกมากเท่าไร ดาวดวงนั้นก็จะยิ่งสว่างน้อยลง (ริบหรี่) มากเท่านั้น" },
-            { id: "M6_2_04", level: 2, q: "ดาว A มีโชติมาตร 1 และดาว B มีโชติมาตร 4 ผู้สังเกตบนโลกจะเห็นดาวทั้งสองสว่างต่างกันประมาณกี่เท่า?", c: ["2.5 เท่า", "7.5 เท่า", "15.85 เท่า"], a: 2, cat: "ความสว่าง", desc: "ต่างกัน 1 ระดับจะสว่างต่างกัน 2.512 เท่า หากต่าง 3 ระดับ (4-1=3) คือ 2.512^3 ≈ 15.85 เท่า" },
-            { id: "M6_2_05", level: 2, q: "ดาวดวงหนึ่งมี 'โชติมาตรปรากฏ (m)' = 5.00 สังเกตมุมพาราแลกซ์พบว่าอยู่ห่าง 100 พาร์เซก ดาวดวงนี้จะมี 'โชติมาตรสัมบูรณ์ (M)' เท่าใด?", c: ["M = 0", "M = 5", "M = 10"], a: 0, cat: "การคำนวณ", desc: "จากสูตร m - M = 5log(d) - 5 แทนค่า 5 - M = 5log(100) - 5 => 5 - M = 10 - 5 => M = 0" },
-            { id: "M6_2_06", level: 2, q: "หากดาวฤกษ์ทุกดวงมีขนาดเท่ากัน ดาวฤกษ์สีใดจะมี 'กำลังส่องสว่าง' มากที่สุด?", c: ["สีน้ำเงิน", "สีเหลือง", "สีแดง"], a: 0, cat: "กำลังส่องสว่าง", desc: "ดาวสีน้ำเงินมีอุณหภูมิพื้นผิวสูงสุด ตามกฎสเตฟาน-โบลต์ซมันน์ ยิ่งร้อนมาก ยิ่งแผ่พลังงานและมีกำลังส่องสว่างมาก" },
-            { id: "M6_2_07", level: 2, q: "ดาวฤกษ์ที่มีสีส้มและอุณหภูมิพื้นผิวประมาณ 3,500 - 5,000 เคลวิน จะมีสเปกตรัมชนิดใด?", c: ["สเปกตรัม A", "สเปกตรัม G", "สเปกตรัม K"], a: 2, cat: "สเปกตรัม", desc: "เรียงลำดับ O B A F G K M (ร้อนไปเย็น) ดาวสีส้มจะอยู่ในช่วงสเปกตรัม K" },
-            { id: "M6_2_08", level: 2, q: "ดาวฤกษ์สีขาวอุณหภูมิผิวประมาณ 7,500 - 10,000 เคลวิน จะอยู่ในสเปกตรัมชนิดใด?", c: ["สเปกตรัม A", "สเปกตรัม F", "สเปกตรัม G"], a: 0, cat: "สเปกตรัม", desc: "สเปกตรัม A เป็นดาวสีขาว อุณหภูมิประมาณ 7,500-10,000K (เช่น ดาวซิริอุส)" },
-            { id: "M6_2_09", level: 2, q: "ข้อใดเรียงลำดับดาวฤกษ์ตามอุณหภูมิพื้นผิวจาก 'น้อยไปหามาก' ได้ถูกต้อง?", c: ["O, B, A, F", "M, K, G, F", "A, F, G, K"], a: 1, cat: "สเปกตรัม", desc: "เรียงจากเย็น(น้อย)ไปร้อน(มาก) คือ M (แดง) -> K (ส้ม) -> G (เหลือง) -> F (ขาวเหลือง)" },
-            { id: "M6_2_10", level: 2, q: "เหตุใดดาวฤกษ์ที่มี 'มวลมาก' จึงมีช่วงอายุขัย 'สั้นกว่า' ดาวฤกษ์ที่มี 'มวลน้อย'?", c: ["มีแรงโน้มถ่วงต่ำ มวลจึงหลุดลอยสู่อวกาศ", "อุณหภูมิต่ำกว่าจึงหยุดปฏิกิริยาได้เร็ว", "มีอัตราการเผาผลาญเชื้อเพลิงสูงมากเพื่อต้านแรงโน้มถ่วง"], a: 2, cat: "อายุขัยดาวฤกษ์", desc: "ดาวมวลมากมีแรงโน้มถ่วงสูงมาก จึงต้องเผาผลาญเชื้อเพลิงอย่างรุนแรงเพื่อพยุงตัวไม่ให้ยุบ ทำให้เชื้อเพลิงหมดไว" },
-            { id: "M6_2_11", level: 2, q: "เมื่อดาวฤกษ์มวลน้อยคล้ายดวงอาทิตย์สิ้นอายุขัย แกนกลางและเปลือกนอกจะกลายสภาพเป็นสิ่งใดตามลำดับ?", c: ["ดาวแคระขาว และ เนบิวลาดาวเคราะห์", "ดาวนิวตรอน และ ซูเปอร์โนวา", "หลุมดำ และ ดาวแคระน้ำตาล"], a: 0, cat: "จุดจบดาวฤกษ์", desc: "ดาวมวลน้อยไม่เกิดซูเปอร์โนวา แต่จะทิ้งแกนกลางที่ยุบตัวเป็นดาวแคระขาว และเปลือกนอกที่ขยายออกเป็นเนบิวลาดาวเคราะห์" },
-            { id: "M6_2_12", level: 2, q: "ดาวฤกษ์ที่มีมวลตั้งต้น 9 - 25 เท่าของดวงอาทิตย์ เมื่อสิ้นอายุขัยมักจะกลายเป็นสิ่งใด?", c: ["ดาวแคระขาว", "ดาวนิวตรอน", "หลุมดำ"], a: 1, cat: "จุดจบดาวฤกษ์", desc: "ดาวมวล 9-25 เท่าของดวงอาทิตย์ จะระเบิดเป็นซูเปอร์โนวา และแกนกลางยุบตัวกลายเป็นดาวนิวตรอน" },
-            { id: "M6_2_13", level: 2, q: "'ดาวนิวตรอน' เกิดจากซูเปอร์โนวา แต่ถ้าดาวฤกษ์ต้นกำเนิดมีมวล 'มากกว่าดวงอาทิตย์ 25 เท่า' ซากสุดท้ายจะกลายเป็นอะไร?", c: ["ดาวแคระขาว", "พัลซาร์", "หลุมดำ (Black Hole)"], a: 2, cat: "จุดจบดาวฤกษ์", desc: "มวลที่มากกว่า 25 เท่าของดวงอาทิตย์ แรงโน้มถ่วงจะเอาชนะแรงดันต้านทุกสิ่ง ยุบตัวผ่านขีดจำกัดจนกลายเป็นหลุมดำ" },
-            { id: "M6_2_14", level: 2, q: "[วิเคราะห์] ข้อมูลดาว 3 ดวง: Alpha (สีน้ำเงิน), Beta (สีเหลือง), Gamma (สีแดง) ข้อใดเรียงลำดับ 'อุณหภูมิสูงไปต่ำ' พร้อมสเปกตรัมที่ถูกต้อง?", c: ["Alpha (G) > Beta (G) > Gamma (K)", "Alpha (O) > Beta (G) > Gamma (M)", "Gamma (O) > Beta (G) > Alpha (M)"], a: 1, cat: "วิเคราะห์ดาวฤกษ์", desc: "สีน้ำเงินร้อนสุดสอดคล้องกับสเปกตรัม O/B สีเหลืองคือสเปกตรัม G และสีแดงเย็นสุดสอดคล้องกับสเปกตรัม M" },
+            // ==========================================
+            // STAGE 2: STELLAR ALCHEMY (14 Qs)
+            // ==========================================
+            { id: "M6_2_01", level: 2, q: "ดาวฤกษ์เกิดขึ้นจากการยุบตัวของสสารใดภายในเอกภพ?", c: ["อนุภาคนิวตริโนจำนวนมาก", "ธาตุหนักภายในซากซูเปอร์โนวา", "กลุ่มฝุ่นและแก๊สภายในเนบิวลา"], a: 2, cat: "กำเนิดดาวฤกษ์", desc: "ดาวฤกษ์ทุกดวงกำเนิดจากการยุบตัวของเนบิวลา ซึ่งเป็นกลุ่มเมฆฝุ่นและก๊าซในอวกาศ" },
+            { id: "M6_2_02", level: 2, q: "ในช่วงที่ 'ดาวฤกษ์ก่อนเกิด' (Protostar) กำลังวิวัฒนาการ เกิดการเปลี่ยนแปลงที่สำคัญที่สุดอย่างไร?", c: ["ขนาดขยายใหญ่ อุณหภูมิลดลง", "ขนาดหดเล็กลง อุณหภูมิและความดันเพิ่มขึ้น", "ขนาดคงที่ อุณหภูมิลดลงจนแสงดับ"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "แรงโน้มถ่วงทำให้ดาวหดตัว ความดันและอุณหภูมิที่แกนกลางจะสูงขึ้นจนสามารถจุดชนวนฟิวชันได้" },
+            { id: "M6_2_03", level: 2, q: "ดาวฤกษ์ก่อนเกิด จะเปลี่ยนสถานะเป็น 'ดาวฤกษ์' ที่สมบูรณ์ได้เมื่อเกิดกระบวนการใดที่แก่นกลาง?", c: ["การระเบิดของซูเปอร์โนวา", "ปฏิกิริยาเทอร์โมนิวเคลียร์", "การยุบตัวด้วยแรงโน้มถ่วง"], a: 1, cat: "กำเนิดดาวฤกษ์", desc: "เมื่ออุณหภูมิสูงถึงระดับ 15 ล้านเคลวิน จะเกิดปฏิกิริยาหลอมไฮโดรเจนเป็นฮีเลียม ถือเป็นการเกิดดาวฤกษ์" },
+            { id: "M6_2_04", level: 2, q: "สีของดาวฤกษ์ในข้อใด ที่บ่งบอกว่ามีอุณหภูมิพื้นผิว 'สูงที่สุด' และ 'ต่ำที่สุด' ตามลำดับ?", c: ["สีเหลือง และ สีน้ำเงิน", "สีขาว และ สีเหลือง", "สีน้ำเงิน และ สีแดง"], a: 2, cat: "สมบัติดาวฤกษ์", desc: "สีน้ำเงินมีพลังงานและอุณหภูมิสูงสุด (O, B) ส่วนสีแดงมีอุณหภูมิต่ำที่สุด (M)" },
+            { id: "M6_2_05", level: 2, q: "ข้อใดเรียงลำดับดาวฤกษ์ตามอุณหภูมิพื้นผิวจาก 'ร้อนสุด ไป เย็นสุด' (สเปกตรัม) ได้ถูกต้อง?", c: ["O B A F G K M", "M K G F A B O", "A F G K M O B"], a: 0, cat: "สมบัติดาวฤกษ์", desc: "การจำแนกสเปกตรัม O B A F G K M (Oh Be A Fine Girl/Guy Kiss Me) เรียงจากร้อนที่สุดไปเย็นที่สุด" },
+            { id: "M6_2_06", level: 2, q: "ดาว A มีโชติมาตร 1 ดาว B มีโชติมาตร 4 ผู้สังเกตจะมองเห็นดาวทั้งสองดวงสว่างต่างกันประมาณกี่เท่า?", c: ["2.5 เท่า", "7.5 เท่า", "15.85 เท่า"], a: 2, cat: "ความสว่าง", desc: "โชติมาตรต่างกัน 1 ระดับ สว่างต่างกัน 2.512 เท่า ถ้าระดับต่างกัน 3 (คือ 4-1) = (2.512)^3 ≈ 15.85 เท่า" },
+            { id: "M6_2_07", level: 2, q: "ดาวดวงหนึ่งมีโชติมาตรปรากฏ (m) = 5.00 สังเกตมุมพาราแลกซ์ได้ 0.01 ฟิลิปดา (100 พาร์เซก) จะมีโชติมาตรสัมบูรณ์ (M) เท่าใด?", c: ["0", "5", "10"], a: 0, cat: "ความสว่าง", desc: "จากสูตร m - M = 5log(d) - 5 จะได้ 5 - M = 5log(100) - 5 => 5 - M = 10 - 5 => M = 0" },
+            { id: "M6_2_08", level: 2, q: "เหตุใดดาวฤกษ์ที่มี มวลมาก จึงมีช่วงอายุขัยสั้นกว่าดาวฤกษ์ที่มี มวลน้อย?", c: ["อุณหภูมิต่ำกว่า จึงหยุดปฏิกิริยานิวเคลียร์ได้เร็วกว่า", "อัตราการเผาผลาญเชื้อเพลิงสูงมากเพื่อต้านแรงโน้มถ่วงที่มหาศาล", "เกิดการชนกับดาวเคราะห์บริวารจนระเบิด"], a: 1, cat: "วิวัฒนาการดาว", desc: "ดาวมวลมากมีแรงโน้มถ่วงมหาศาล จึงต้องเร่งปฏิกิริยาฟิวชันให้เกิดแรงดันมหาศาลมาต้าน ทำให้ใช้เชื้อเพลิงหมดไว" },
+            { id: "M6_2_09", level: 2, q: "เมื่อดาวฤกษ์มวลน้อย (คล้ายดวงอาทิตย์) สิ้นอายุขัย แกนกลางและเปลือกนอกจะกลายสภาพเป็นสิ่งใดตามลำดับ?", c: ["ดาวแคระขาว และ เนบิวลาดาวเคราะห์", "ดาวนิวตรอน และ ซูเปอร์โนวา", "หลุมดำ และ ดาวแคระน้ำตาล"], a: 0, cat: "วิวัฒนาการดาว", desc: "ดาวมวลน้อยไม่ระเบิดซูเปอร์โนวา แต่เปลือกจะกระจายออกเป็นเนบิวลา ทิ้งแกนกลางเป็นดาวแคระขาว" },
+            { id: "M6_2_10", level: 2, q: "ดาวฤกษ์ที่มีมวลตั้งต้น 9-25 เท่าของดวงอาทิตย์ เมื่อสิ้นอายุขัยและระเบิดซูเปอร์โนวา ซากแกนกลางจะกลายเป็นอะไร?", c: ["หลุมดำ", "ดาวนิวตรอน", "ดาวแคระขาว"], a: 1, cat: "วิวัฒนาการดาว", desc: "ดาวมวลระดับกลาง-สูง จะยุบตัวพ้นขีดจำกัดดาวแคระขาวกลายเป็น 'ดาวนิวตรอน' หรือพัลซาร์" },
+            { id: "M6_2_11", level: 2, q: "'ดาวนิวตรอน' เกิดจากซูเปอร์โนวา แต่ถ้าดาวต้นกำเนิดมีมวล 'มากกว่าดวงอาทิตย์ 25 เท่าขึ้นไป' ซากที่เหลือจะกลายเป็นอะไร?", c: ["ดาวแคระขาว", "พัลซาร์", "หลุมดำ (Black Hole)"], a: 2, cat: "วิวัฒนาการดาว", desc: "มวลมหาศาลจะทำให้การยุบตัวดำเนินต่อไปทะลุขีดจำกัดดาวนิวตรอน กลายเป็นหลุมดำที่มีแรงโน้มถ่วงอนันต์" },
+            { id: "M6_2_12", level: 2, q: "หากผู้สังเกตบนโลกมองท้องฟ้า ดาวดวงใดจะปรากฏให้เห็นสว่าง 'น้อยที่สุด'?", c: ["ดาว A: โชติมาตร -1.46", "ดาว C: โชติมาตร 1.25", "ดาว D: โชติมาตร 5.00"], a: 2, cat: "ความสว่าง", desc: "ค่าโชติมาตรยิ่ง 'มาก' ความสว่างยิ่ง 'น้อย' (ค่าติดลบจะสว่างที่สุด)" },
+            { id: "M6_2_13", level: 2, q: "ดาวฤกษ์ดวงใดต่อไปนี้จะมี 'กำลังส่องสว่าง' มากที่สุด (กำหนดขนาดเท่ากัน)?", c: ["ดาวฤกษ์สีแดง", "ดาวฤกษ์สีเหลือง", "ดาวฤกษ์สีน้ำเงิน"], a: 2, cat: "กำลังส่องสว่าง", desc: "ตามกฎสเตฟาน-โบลต์ซมันน์ กำลังส่องสว่างขึ้นอยู่กับอุณหภูมิผิวยกกำลังสี่ ดาวสีน้ำเงินร้อนสุดจึงสว่างที่สุด" },
+            { id: "M6_2_14", level: 2, q: "[ภารกิจวิเคราะห์] กล้องอวกาศถ่ายภาพดาว 3 ดวง: Alpha (สีน้ำเงิน), Beta (สีเหลือง), Gamma (สีแดง) ข้อใดเรียงอุณหภูมิพื้นผิวจาก 'สูงไปต่ำ'?", c: ["Gamma > Beta > Alpha", "Alpha > Beta > Gamma", "Beta > Alpha > Gamma"], a: 1, cat: "วิเคราะห์", desc: "สีน้ำเงิน (Alpha) ร้อนสุดสอดคล้องกับสเปกตรัม O/B ส่วนสีแดง (Gamma) เย็นสุดสอดคล้องกับสเปกตรัม M" },
 
-            // ================= STAGE 3: ระบบสุริยะ (Level 3) =================
-            { id: "M6_3_01", level: 3, q: "มวลประมาณร้อยละ 99.8 ของกลุ่มฝุ่นและแก๊สในเนบิวลาสุริยะ รวมตัวกันเกิดเป็นวัตถุใด?", c: ["ดาวพฤหัสบดี", "ดวงอาทิตย์", "ดาวเคราะห์ชั้นใน"], a: 1, cat: "กำเนิดระบบสุริยะ", desc: "มวลเกือบทั้งหมดของการก่อตัวระบบสุริยะยุบตัวรวมกันอยู่ที่ศูนย์กลาง กลายเป็นดวงอาทิตย์ของเรา" },
-            { id: "M6_3_02", level: 3, q: "ระหว่างวงโคจรของ 'ดาวอังคาร' และ 'ดาวพฤหัสบดี' เราจะพบกลุ่มวัตถุใด?", c: ["แถบดาวเคราะห์น้อย", "แถบไคเปอร์", "เมฆออร์ต"], a: 0, cat: "โครงสร้างระบบสุริยะ", desc: "แถบดาวเคราะห์น้อย (Asteroid Belt) เป็นเศษซากที่รวมตัวเป็นดาวเคราะห์ไม่ได้ โคจรอยู่ระหว่างดาวอังคารและพฤหัสบดี" },
-            { id: "M6_3_03", level: 3, q: "ตามกฎของเคพเลอร์ วงโคจรของดาวเคราะห์รอบดวงอาทิตย์มีลักษณะอย่างไร และดวงอาทิตย์ตั้งอยู่ที่ตำแหน่งใด?", c: ["รูปวงกลม / ดวงอาทิตย์อยู่ที่จุดศูนย์กลาง", "รูปวงรี / ดวงอาทิตย์อยู่ที่จุดโฟกัส", "รูปพาราโบลา / ดวงอาทิตย์อยู่ที่จุดยอด"], a: 1, cat: "กฎเคปเลอร์", desc: "กฎข้อที่ 1 ของเคพเลอร์ระบุชัดเจนว่า ดาวเคราะห์โคจรเป็นรูปวงรี (Ellipse) โดยดวงอาทิตย์อยู่ที่จุดโฟกัสจุดหนึ่งของวงรี" },
-            { id: "M6_3_04", level: 3, q: "จากกฎเคปเลอร์ข้อที่ 2 (กฎพื้นที่เท่ากัน) เมื่อโลกโคจรไปอยู่ในตำแหน่ง 'ใกล้' ดวงอาทิตย์มากที่สุด ความเร็วจะเป็นอย่างไร?", c: ["เคลื่อนที่เร็วขึ้น", "เคลื่อนที่ช้าลง", "เคลื่อนที่ด้วยความเร็วคงที่"], a: 0, cat: "กฎเคปเลอร์", desc: "เมื่อเข้าใกล้ดวงอาทิตย์ แรงโน้มถ่วงจะกระทำมากขึ้น ทำให้โลกต้องเคลื่อนที่เร็วขึ้นเพื่อกวาดพื้นที่ให้เท่ากันในเวลาที่เท่ากัน" },
-            { id: "M6_3_05", level: 3, q: "โครงสร้างดวงอาทิตย์ชั้นใด ที่เราเห็นเป็นดวงไฟสว่างด้วยตาเปล่า และเกิด 'จุดมืด (Sunspot)'?", c: ["ชั้นโครโมสเฟียร์", "ชั้นโคโรนา", "ชั้นโฟโตสเฟียร์"], a: 2, cat: "ดวงอาทิตย์", desc: "โฟโตสเฟียร์ (Photosphere) คือชั้นทรงกลมแสงที่เป็นผิวของดวงอาทิตย์ที่เรามองเห็น และมีจุดอุณหภูมิต่ำเกิดเป็นจุดมืด" },
-            { id: "M6_3_06", level: 3, q: "เหตุผลทางฟิสิกส์ข้อใด ที่ทำให้ 'ดาวศุกร์' ร้อนที่สุดในระบบสุริยะ แม้ไม่ได้อยู่ใกล้ดวงอาทิตย์ที่สุด?", c: ["ปรากฏการณ์เรือนกระจกขั้นสุด", "แกนกลางมีกัมมันตรังสีมหาศาล", "หมุนรอบตัวเองช้ามาก"], a: 0, cat: "ดาวเคราะห์", desc: "ดาวศุกร์มีชั้นบรรยากาศที่เต็มไปด้วยก๊าซคาร์บอนไดออกไซด์หนาแน่น ก่อให้เกิดภาวะเรือนกระจกกักเก็บความร้อนรุนแรง" },
-            { id: "M6_3_07", level: 3, q: "เหตุผลชี้ขาดข้อใด ที่ทำให้นักดาราศาสตร์มีมติปลด 'ดาวพลูโต' เป็นเพียง 'ดาวเคราะห์แคระ'?", c: ["วงโคจรทับซ้อนกับดาวเนปจูน", "ไม่สามารถกวาดล้างวัตถุในวงโคจรได้", "ไม่มีดวงจันทร์บริวาร"], a: 1, cat: "ดาวเคราะห์แคระ", desc: "พลูโตสอบตกกฎข้อที่ 3 คือมีมวลและแรงโน้มถ่วงไม่พอที่จะเคลียร์วัตถุอื่นๆ ในบริเวณวงโคจรของตัวเองได้" },
-            { id: "M6_3_08", level: 3, q: "ดวงจันทร์ของดาวพฤหัสบดีดวงใดที่มี 'ภูเขาไฟระเบิดตลอดเวลา' ซึ่งเป็นผลจากความร้อนของแรงไทดัล (Tidal Heating)?", c: ["ดวงจันทร์ไททัน (Titan)", "ดวงจันทร์ยูโรปา (Europa)", "ดวงจันทร์ไอโอ (Io)"], a: 2, cat: "ดวงจันทร์บริวาร", desc: "ไอโอ (Io) ถูกแรงโน้มถ่วงมหาศาลของดาวพฤหัสบดีบีบอัดและดึงยืดตลอดเวลา ทำให้ภายในเกิดความร้อนมหาศาลปะทุออกมา" },
-            { id: "M6_3_09", level: 3, q: "ข้อใดคือความจริงที่ดู 'ขัดกับความรู้สึก' (Counter-intuitive) เกี่ยวกับอุณหภูมิของดวงอาทิตย์?", c: ["จุดมืด (Sunspots) ร้อนกว่าบริเวณรอบๆ", "ชั้นบรรยากาศโคโรนา ร้อนกว่าผิวดวงอาทิตย์", "แกนกลางของดวงอาทิตย์มีสถานะเป็นของแข็ง"], a: 1, cat: "ดวงอาทิตย์", desc: "พื้นผิวดวงอาทิตย์ร้อนเพียง ~5,500 องศาเซลเซียส แต่ชั้นโคโรนาที่อยู่ถัดออกไปด้านนอกกลับร้อนทะลุ 1-3 ล้านองศา" },
-            { id: "M6_3_10", level: 3, q: "ขอบเขตสุดทางของลมสุริยะ (ขอบเขตอิทธิพลดวงอาทิตย์) ก่อนปะทะกับมวลสารระหว่างดาว เรียกว่าอะไร?", c: ["เมฆออร์ต (Oort Cloud)", "แถบไคเปอร์ (Kuiper Belt)", "เฮลิโอพอส (Heliopause)"], a: 2, cat: "ขอบเขตระบบสุริยะ", desc: "เฮลิโอพอส (Heliopause) เป็นจุดขอบเขตของฟองแม่เหล็กไฟฟ้าสุริยะ ซึ่งยานอวกาศวอยเอเจอร์เพิ่งเดินทางทะลุผ่านไป" },
-            { id: "M6_3_11", level: 3, q: "ปัจจุบัน ยานอวกาศที่มีมนุษย์เดินทางไปด้วย สามารถเดินทางไปได้ไกลสุดถึงจุดหมายใดในอวกาศ?", c: ["ดาวอังคาร", "ดวงจันทร์", "สถานีอวกาศนานาชาติ (ISS)"], a: 1, cat: "การสำรวจอวกาศ", desc: "โครงการอะพอลโล (Apollo) เป็นโครงการเดียวจนถึงปัจจุบันที่สามารถนำมนุษย์เดินทางไปลงจอดบนดวงจันทร์ได้สำเร็จ" }
+            // ==========================================
+            // STAGE 3: SOLAR NAVIGATOR (11 Qs)
+            // ==========================================
+            { id: "M6_3_01", level: 3, q: "มวลประมาณร้อยละ 99.8 ของกลุ่มฝุ่นและแก๊สในเนบิวลาสุริยะ รวมตัวกันเกิดเป็นวัตถุใดในระบบสุริยะ?", c: ["แถบดาวเคราะห์น้อย", "ดวงอาทิตย์", "ดาวพฤหัสบดี"], a: 1, cat: "ระบบสุริยะ", desc: "มวลแทบทั้งหมดของระบบสุริยะรวมตัวกันอยู่ตรงกลางกลายเป็นดวงอาทิตย์ ที่เหลือกลายเป็นดาวเคราะห์" },
+            { id: "M6_3_02", level: 3, q: "ระหว่างดาวอังคารและดาวพฤหัสบดี เราจะพบวัตถุใดในอวกาศเป็นจำนวนมาก?", c: ["เมฆออร์ต", "ดาวเคราะห์แคระ", "แถบดาวเคราะห์น้อย"], a: 2, cat: "ระบบสุริยะ", desc: "แถบดาวเคราะห์น้อย (Asteroid Belt) อยู่ระหว่างวงโคจรดาวอังคารและพฤหัสบดี" },
+            { id: "M6_3_03", level: 3, q: "ตามกฎของเคพเลอร์ วงโคจรของดาวเคราะห์รอบดวงอาทิตย์มีลักษณะอย่างไร?", c: ["วงรี โดยดวงอาทิตย์อยู่จุดโฟกัส", "วงกลม โดยดวงอาทิตย์อยู่จุดศูนย์กลาง", "พาราโบลา โดยดวงอาทิตย์อยู่จุดยอด"], a: 0, cat: "กฎเคปเลอร์", desc: "กฎข้อที่ 1 ของเคพเลอร์ระบุว่า วงโคจรเป็นวงรี และดวงอาทิตย์อยู่ที่จุดโฟกัสจุดหนึ่ง" },
+            { id: "M6_3_04", level: 3, q: "จากกฎพื้นที่เท่ากัน (กฎเคพเลอร์ข้อ 2) เมื่อดาวเคราะห์โคจรไปอยู่ตำแหน่งที่ 'ใกล้' ดวงอาทิตย์ที่สุด ความเร็วจะเป็นอย่างไร?", c: ["เคลื่อนที่ช้าลง", "เคลื่อนที่เร็วขึ้น", "ความเร็วคงที่"], a: 1, cat: "กฎเคปเลอร์", desc: "เมื่อดาวเคราะห์เข้าใกล้ดวงอาทิตย์ แรงโน้มถ่วงกระทำมากขึ้น ทำให้ดาวเคราะห์ต้องเคลื่อนที่เร็วขึ้นเพื่อกวาดพื้นที่ให้เท่ากัน" },
+            { id: "M6_3_05", level: 3, q: "โครงสร้างดวงอาทิตย์ชั้นใด ที่เราเห็นเป็นดวงไฟสว่าง และเป็นบริเวณที่เกิด 'จุดมืด (Sunspot)'?", c: ["โครโมสเฟียร์", "โคโรนา", "โฟโตสเฟียร์"], a: 2, cat: "ดวงอาทิตย์", desc: "โฟโตสเฟียร์ (Photosphere) คือชั้นบรรยากาศชั้นในสุดที่เปล่งแสงสว่างออกมา" },
+            { id: "M6_3_06", level: 3, q: "เหตุผลทางฟิสิกส์ข้อใด ที่ทำให้ 'ดาวศุกร์' ร้อนที่สุดในระบบสุริยะ แม้ไม่ได้อยู่ใกล้ดวงอาทิตย์ที่สุด?", c: ["แกนกลางมีกัมมันตรังสี", "ปรากฏการณ์เรือนกระจกขั้นสุด", "หมุนรอบตัวเองช้ามาก"], a: 1, cat: "ความลับระบบสุริยะ", desc: "ดาวศุกร์มีก๊าซคาร์บอนไดออกไซด์หนาแน่น กักเก็บความร้อนไว้ไม่ให้สะท้อนออก กลายเป็นสภาวะเรือนกระจกแบบกู่ไม่กลับ" },
+            { id: "M6_3_07", level: 3, q: "เหตุผลชี้ขาดข้อใด ที่ทำให้ดาวพลูโตถูกปลดเป็นเพียง 'ดาวเคราะห์แคระ'?", c: ["ไม่มีดวงจันทร์บริวาร", "วงโคจรทับดาวเนปจูน", "ไม่สามารถกวาดล้างวงโคจรได้"], a: 2, cat: "ความลับระบบสุริยะ", desc: "พลูโตมีมวลและแรงโน้มถ่วงไม่พอที่จะเคลียร์วัตถุอื่น (วงโคจรทับซ้อนกับแถบไคเปอร์) จึงถูกปลด" },
+            { id: "M6_3_08", level: 3, q: "ดาวดวงใดมี 'ภูเขาไฟระเบิดตลอดเวลา' ซึ่งเป็นผลจากความร้อนของแรงไทดัล (Tidal Heating)?", c: ["ดวงจันทร์ไอโอ (Io)", "ดวงจันทร์ไททัน (Titan)", "ดาวอังคาร (Mars)"], a: 0, cat: "ความลับระบบสุริยะ", desc: "ดวงจันทร์ไอโอ ถูกแรงโน้มถ่วงมหาศาลของดาวพฤหัสบดีบีบอัดจนเกิดความร้อนมหาศาลภายใน" },
+            { id: "M6_3_09", level: 3, q: "ข้อใดคือความจริงที่ดู 'ขัดกับความรู้สึก' (Counter-intuitive) เกี่ยวกับดวงอาทิตย์?", c: ["จุดมืด (Sunspots) ร้อนกว่าบริเวณรอบๆ", "ชั้นบรรยากาศโคโรนา ร้อนกว่าผิวดวงอาทิตย์", "แกนกลางของดวงอาทิตย์เป็นของแข็ง"], a: 1, cat: "ความลับระบบสุริยะ", desc: "พื้นผิวดวงอาทิตย์ร้อนแค่ ~5,500 °C แต่ชั้นโคโรนาที่อยู่ด้านนอกกลับร้อนถึง 1-3 ล้าน °C ซึ่งเป็นปริศนาทางฟิสิกส์" },
+            { id: "M6_3_10", level: 3, q: "ขอบเขตสุดทางของลมสุริยะ ก่อนปะทะกับมวลสารระหว่างดาว (Interstellar Medium) เรียกว่าอะไร?", c: ["เฮลิโอพอส (Heliopause)", "เมฆออร์ต (Oort Cloud)", "แถบไคเปอร์ (Kuiper Belt)"], a: 0, cat: "ระบบสุริยะ", desc: "เฮลิโอพอส เป็นจุดขอบเขตฟองแม่เหล็กไฟฟ้าของระบบสุริยะ ที่ยานวอยเอเจอร์เพิ่งเดินทางผ่านไป" },
+            { id: "M6_3_11", level: 3, q: "ในปัจจุบัน มนุษย์สามารถส่งนักบินอวกาศเดินทางไปได้ไกลสุดถึงจุดหมายใด?", c: ["ดาวอังคาร", "ดวงจันทร์", "ดาวเคราะห์น้อย"], a: 1, cat: "ความรู้ทั่วไป", desc: "โครงการ Apollo เป็นโครงการเดียวที่พามนุษย์ไปเหยียบดวงจันทร์สำเร็จ ส่วนดาวอังคารยังส่งไปแค่หุ่นยนต์สำรวจ" }
         ];
 
         const GameState = {
             student: { studentId: "", firstName: "", lastName: "" }, attemptId: "",
             currentStage: 1, score: 0, energy: 5, timer: 30, qIndex: 0, 
             activeQuestions: [], startTime: 0, stats: { correct: 0, wrong: 0, timeUsed: 0 },
-            questionResults: [], isAnswering: false, timerInterval: null
+            questionResults: [], isAnswering: false, timerInterval: null,
+            currentChoicesMap: [] // To keep track of shuffled choice indices
         };
 
         const GameSys = {
             startCountdown(stageNum) {
                 GameState.currentStage = stageNum || 1;
+                
+                // Show player name based on Login Info
+                const pNameEl = document.getElementById('ui-player-name');
+                pNameEl.innerText = `${GameState.student.firstName} ${GameState.student.lastName.substring(0,1)}.`;
+
                 if(AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
                 document.getElementById('screen-menu').classList.add('hidden-sys');
                 document.getElementById('screen-countdown').classList.remove('hidden-sys');
@@ -802,12 +824,7 @@
                 
                 let count = 3;
                 const cdText = document.getElementById('countdown-text');
-                const themeColor = stageNum === 1 ? 'text-fuchsia-400' : (stageNum === 2 ? 'text-amber-400' : 'text-cyan-400');
-                const shadowColor = stageNum === 1 ? 'rgba(217,70,239,0.8)' : (stageNum === 2 ? 'rgba(245,158,11,0.8)' : 'rgba(6,182,212,0.8)');
-
-                cdText.innerText = count; 
-                cdText.className = `text-8xl sm:text-9xl font-sci font-bold ${themeColor} countdown-pop`;
-                cdText.style.textShadow = `0 0 30px ${shadowColor}`;
+                cdText.innerText = count; cdText.className = "text-8xl sm:text-9xl font-sci font-bold text-cyan-400 drop-shadow-[0_0_30px_rgba(6,182,212,0.8)] countdown-pop";
                 AudioSys.playCountdownBeep();
 
                 const cdInterval = setInterval(() => {
@@ -816,9 +833,7 @@
                     if (count > 0) {
                         cdText.innerText = count; cdText.classList.add('countdown-pop'); AudioSys.playCountdownBeep();
                     } else if (count === 0) {
-                        cdText.innerText = "GO!"; cdText.className = "text-8xl sm:text-9xl font-sci font-bold text-green-400 countdown-go"; 
-                        cdText.style.textShadow = `0 0 40px rgba(74,222,128,0.8)`;
-                        AudioSys.playCountdownGo();
+                        cdText.innerText = "GO!"; cdText.className = "text-8xl sm:text-9xl font-sci font-bold text-purple-400 drop-shadow-[0_0_40px_rgba(168,85,247,0.8)] countdown-go"; AudioSys.playCountdownGo();
                     } else {
                         clearInterval(cdInterval);
                         document.getElementById('screen-countdown').classList.add('hidden-sys');
@@ -830,7 +845,7 @@
                 document.getElementById('screen-result').classList.add('hidden-sys'); document.getElementById('screen-game').classList.remove('hidden-sys');
                 if(!PoseTrackingSys.fallbackMode) document.getElementById('camera-preview').classList.remove('hidden-sys');
 
-                GameState.attemptId = `ASTRO-M6-S${GameState.currentStage}-` + Date.now();
+                GameState.attemptId = `ASTRO-S${GameState.currentStage}-` + Date.now() + "-" + Math.floor(Math.random()*1000);
                 GameState.questionResults = [];
                 
                 const pool = QuestionBank.filter(q => q.level === GameState.currentStage);
@@ -851,11 +866,8 @@
             updateUI() {
                 document.getElementById('ui-stage-indicator').innerText = `STAGE ${GameState.currentStage}`;
                 document.getElementById('ui-score').innerText = GameState.score.toString();
-                let heartsHtml = ''; for(let i=0; i<5; i++) heartsHtml += i < GameState.energy ? '<i class="fa-solid fa-heart text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]"></i>' : '<i class="fa-regular fa-heart text-slate-700"></i>';
+                let heartsHtml = ''; for(let i=0; i<5; i++) heartsHtml += i < GameState.energy ? '<i class="fa-solid fa-heart drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></i>' : '<i class="fa-regular fa-heart text-slate-700"></i>';
                 document.getElementById('ui-energy').innerHTML = heartsHtml; document.getElementById('ui-qnum').innerText = GameState.qIndex + 1;
-                
-                /* อัปเดตชื่อผู้เล่นและ ID ให้ตรงกับที่ล็อกอินเข้ามา */
-                document.getElementById('ui-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
             },
             loadQuestion() {
                 if (GameState.qIndex >= 5 || GameState.energy <= 0) { this.endGame(); return; }
@@ -863,23 +875,28 @@
                 const q = GameState.activeQuestions[GameState.qIndex];
                 
                 const stageNames = ["COSMIC ORIGIN", "STELLAR ALCHEMY", "SOLAR NAVIGATOR"];
-                document.getElementById('ui-category').innerText = `STAGE ${GameState.currentStage} : ${stageNames[GameState.currentStage-1]} - ${q.cat}`; 
+                document.getElementById('ui-category').innerText = `STAGE ${GameState.currentStage} : ${stageNames[GameState.currentStage-1]}`; 
                 document.getElementById('ui-question').innerText = q.q;
                 
                 const dz = document.getElementById('question-container'); dz.classList.remove('success', 'error');
                 const overlay = document.getElementById('question-result-overlay'); overlay.classList.add('opacity-0'); overlay.classList.remove('opacity-100');
                 document.getElementById('question-result-desc').classList.add('hidden');
                 
-                const choicesDiv = document.getElementById('ui-choices'); choicesDiv.innerHTML = '';
-                const hexColors = ['#06b6d4', '#d946ef', '#f59e0b']; // Cyan, Fuchsia, Amber 
+                // Shuffle Choices Logic
+                let choices = q.c.map((text, index) => ({ text, originalIndex: index }));
+                choices.sort(() => Math.random() - 0.5);
+                GameState.currentChoicesMap = choices.map(ch => ch.originalIndex); // Save mapping for answer checking
 
-                q.c.forEach((choice, idx) => {
+                const choicesDiv = document.getElementById('ui-choices'); choicesDiv.innerHTML = '';
+                const hexColors = ['#06b6d4', '#a855f7', '#f472b6']; // Cyan, Purple, Pink
+
+                choices.forEach((choiceObj, idx) => {
                     const hex = hexColors[idx];
                     const btn = document.createElement('div'); 
                     btn.className = 'choice-card-v2 p-4 sm:p-6 flex flex-row sm:flex-col items-center gap-3 sm:gap-4 justify-start sm:justify-center w-full'; 
                     btn.style.setProperty('--card-color', hex); btn.dataset.index = idx; 
                     
-                    btn.innerHTML = `<div class="circle-num w-8 h-8 sm:w-10 sm:h-10 text-sm sm:text-xl">${idx + 1}</div><div class="font-semibold text-xs sm:text-base md:text-lg text-left sm:text-center leading-tight flex-1 px-1">${choice}</div>`;
+                    btn.innerHTML = `<div class="circle-num w-8 h-8 sm:w-10 sm:h-10 text-sm sm:text-xl">${idx + 1}</div><div class="font-semibold text-xs sm:text-base md:text-lg text-left sm:text-center leading-tight flex-1 px-1">${choiceObj.text}</div>`;
                     choicesDiv.appendChild(btn);
                 });
                 
@@ -899,10 +916,17 @@
             updateTimerUI() { document.getElementById('ui-timer').innerText = GameState.timer; const pct = (GameState.timer / 30) * 100; document.getElementById('ui-timer-circle').style.setProperty('--timer-pct', `${pct}%`); },
             checkAnswer(selectedIndex, cardElement) {
                 if (GameState.isAnswering) return; GameState.isAnswering = true; this.clearTimer();
-                const q = GameState.activeQuestions[GameState.qIndex]; const isCorrect = (selectedIndex === q.a); const timeTaken = 30 - GameState.timer; GameState.stats.timeUsed += timeTaken;
+                const q = GameState.activeQuestions[GameState.qIndex]; 
+                
+                // Map the clicked index back to original index to check if it's correct
+                const originalIndexSelected = GameState.currentChoicesMap[selectedIndex];
+                const isCorrect = (originalIndexSelected === q.a); 
+                
+                const timeTaken = 30 - GameState.timer; GameState.stats.timeUsed += timeTaken;
                 const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
                 overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
                 let pointsEarned = 0;
+                
                 if (isCorrect) {
                     AudioSys.playCorrect(); dz.classList.add('success'); pointsEarned = 10; let bonusText = ""; if (GameState.timer >= 20) { pointsEarned += 5; bonusText = " (+5 SPEED)"; }
                     document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
@@ -916,8 +940,8 @@
                     document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-5 POINTS / -1 ENERGY";
                     GameState.score = Math.max(0, GameState.score - 5); GameState.energy--; GameState.stats.wrong++;
                 }
-                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: q.c[selectedIndex], correctAnswer: q.c[q.a], result: isCorrect ? "correct" : "wrong", score: pointsEarned, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
-                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 5000);
+                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: q.c[originalIndexSelected], correctAnswer: q.c[q.a], result: isCorrect ? "correct" : "wrong", score: pointsEarned, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
             },
             handleTimeOut() {
                 GameState.isAnswering = true; this.clearTimer(); AudioSys.playError(); const q = GameState.activeQuestions[GameState.qIndex]; const timeTaken = 30; GameState.stats.timeUsed += timeTaken;
@@ -928,7 +952,7 @@
                 document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-1 ENERGY";
                 GameState.energy--; GameState.stats.wrong++;
                 GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: "TIMEOUT", correctAnswer: q.c[q.a], result: "wrong", score: 0, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
-                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 5000);
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
             },
             nextQuestion() { GameState.qIndex++; if (GameState.energy <= 0 || GameState.qIndex >= 5) this.endGame(); else this.loadQuestion(); },
             animateValue(obj, start, end, duration, suffix = "") {
@@ -944,7 +968,7 @@
             endGame() {
                 this.clearTimer(); const totalTimeSec = GameState.stats.timeUsed; const min = Math.floor(totalTimeSec / 60).toString().padStart(2, '0'); const sec = (totalTimeSec % 60).toString().padStart(2, '0'); const completed = GameState.energy > 0;
                 
-                const hsKey = `astro_m6_hs_${GameState.student.studentId}`;
+                const hsKey = `astro_hs_${GameState.student.studentId}`;
                 let currentHs = parseInt(localStorage.getItem(hsKey) || 0);
                 if(GameState.score > 0) {
                     let totalScore = currentHs + GameState.score;
@@ -963,9 +987,8 @@
                 
                 const resultPanel = screenResult.querySelector('.glass-panel'); resultPanel.classList.remove('animate-popup'); void resultPanel.offsetWidth; resultPanel.classList.add('animate-popup');
 
-                document.getElementById('result-header').innerText = completed ? "MISSION COMPLETE!" : "MISSION FAILED"; 
-                document.getElementById('result-header').className = `text-2xl sm:text-5xl font-sci font-bold mb-2 tracking-widest ${completed ? 'text-cyan-400' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
-                document.getElementById('result-header').style.textShadow = completed ? '0 0 15px rgba(6,182,212,0.8)' : 'none';
+                document.getElementById('result-header').innerText = completed ? "STAGE CLEARED!" : "STAGE FAILED"; 
+                document.getElementById('result-header').className = `text-2xl sm:text-5xl font-sci font-bold mb-2 tracking-widest ${completed ? 'text-cyan-400 neon-text-primary' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
                 document.getElementById('result-subheader').innerText = `STAGE ${GameState.currentStage} FINISHED`;
 
                 document.getElementById('result-time').innerText = `${min}:${sec}`; document.getElementById('result-correct').innerText = GameState.stats.correct; document.getElementById('result-wrong').innerText = GameState.stats.wrong;
@@ -981,8 +1004,8 @@
                 let rank = "FAILED", icon = '<i class="fa-solid fa-skull"></i>', color = "text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]";
                 if (completed) {
                     if (acc >= 80) { rank = "EXCELLENT"; icon = '<i class="fa-solid fa-star"></i>'; color = "text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]"; }
-                    else if (acc >= 60) { rank = "GOOD JOB"; icon = '<i class="fa-solid fa-thumbs-up"></i>'; color = "text-fuchsia-400 drop-shadow-[0_0_15px_rgba(217,70,239,0.8)]"; }
-                    else { rank = "SURVIVOR"; icon = '<i class="fa-solid fa-shield-halved"></i>'; color = "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]"; }
+                    else if (acc >= 60) { rank = "GOOD JOB"; icon = '<i class="fa-solid fa-thumbs-up"></i>'; color = "text-purple-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]"; }
+                    else { rank = "SURVIVOR"; icon = '<i class="fa-solid fa-shield-halved"></i>'; color = "text-pink-400 drop-shadow-[0_0_10px_rgba(244,114,182,0.8)]"; }
                 }
 
                 if (completed && GameState.currentStage < 3) {
@@ -995,13 +1018,15 @@
                     btnPrimary.innerHTML = '<i class="fa-solid fa-rotate-right mr-2"></i> RETRY STAGE';
                     btnPrimary.onclick = () => GameSys.startCountdown(GameState.currentStage);
                 }
-                btnPrimary.disabled = false; btnPrimary.classList.remove('opacity-50', 'cursor-not-allowed');
 
                 setTimeout(() => {
                     if(completed) AudioSys.playTriumph(); else AudioSys.playError();
                     rankIconEl.innerHTML = icon; rankIconEl.className = `text-4xl sm:text-6xl mb-2 sm:mb-4 ${color} relative z-10 animate-stamp`;
                     rankTextEl.innerText = rank; rankTextEl.className = `text-lg sm:text-2xl font-bold ${color} font-sci relative z-10 animate-stamp`;
                 }, 1500);
+                
+                const payload = { action: "saveAttempt", attemptId: GameState.attemptId, student: { studentId: GameState.student.studentId, firstName: GameState.student.firstName, lastName: GameState.student.lastName }, summary: { score: GameState.score, correct: GameState.stats.correct, wrong: GameState.stats.wrong, accuracy: acc, totalTime: totalTimeSec, questionCount: GameState.questionResults.length, deviceMode: PoseTrackingSys.fallbackMode ? "Touch/Mouse" : "Zone Jump (Camera)", missionLevel: "ASTRO DEEP SPACE - STAGE " + GameState.currentStage }, questions: GameState.questionResults };
+                BackendSys.saveAttempt(payload);
             }
         };
 
@@ -1015,17 +1040,22 @@
             
             document.addEventListener("visibilitychange", () => {
                 if (document.hidden) {
-                    GraphicsSys.isGraphicsActive = false; PoseTrackingSys.isActive = false;
+                    GraphicsSys.isGraphicsActive = false;
+                    PoseTrackingSys.isActive = false;
                     if(AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
                 } else {
                     GraphicsSys.isGraphicsActive = true;
                     if(AudioSys.ctx && AudioSys.ctx.state === 'suspended' && !AudioSys.isMuted) AudioSys.ctx.resume();
+                    
                     const isGameScreen = !document.getElementById('screen-game').classList.contains('hidden-sys');
                     const isCountdown = !document.getElementById('screen-countdown').classList.contains('hidden-sys');
-                    if (isGameScreen || isCountdown) PoseTrackingSys.isActive = true;
+                    if (isGameScreen || isCountdown) {
+                        PoseTrackingSys.isActive = true;
+                    }
                 }
             });
         };
+        window.GameSys = GameSys; window.AudioSys = AudioSys; window.LoginSys = LoginSys; window.PoseTrackingSys = PoseTrackingSys;
     </script>
 </body>
 </html>
