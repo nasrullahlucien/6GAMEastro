@@ -802,10 +802,10 @@
 
         const GameState = {
             student: { studentId: "", firstName: "", lastName: "" }, attemptId: "",
-            currentStage: 1, score: 0, energy: 5, timer: 30, qIndex: 0, 
+            currentStage: 1, score: 0, energy: 5, timer: 30, qIndex: 0, combo: 0,
             activeQuestions: [], startTime: 0, stats: { correct: 0, wrong: 0, timeUsed: 0 },
             questionResults: [], isAnswering: false, timerInterval: null,
-            currentChoicesMap: [] // To keep track of shuffled choice indices
+            currentChoicesMap: [] 
         };
 
         const GameSys = {
@@ -852,7 +852,7 @@
                 const shuffled = [...pool].sort(() => 0.5 - Math.random());
                 GameState.activeQuestions = shuffled.slice(0, 5); 
                 
-                GameState.score = 0; GameState.energy = 5; GameState.qIndex = 0; GameState.stats = { correct: 0, wrong: 0, timeUsed: 0 }; GameState.startTime = Date.now();
+                GameState.score = 0; GameState.energy = 5; GameState.qIndex = 0; GameState.combo = 0; GameState.stats = { correct: 0, wrong: 0, timeUsed: 0 }; GameState.startTime = Date.now();
                 
                 this.updateUI(); this.loadQuestion();
             },
@@ -918,7 +918,6 @@
                 if (GameState.isAnswering) return; GameState.isAnswering = true; this.clearTimer();
                 const q = GameState.activeQuestions[GameState.qIndex]; 
                 
-                // Map the clicked index back to original index to check if it's correct
                 const originalIndexSelected = GameState.currentChoicesMap[selectedIndex];
                 const isCorrect = (originalIndexSelected === q.a); 
                 
@@ -928,12 +927,27 @@
                 let pointsEarned = 0;
                 
                 if (isCorrect) {
-                    AudioSys.playCorrect(); dz.classList.add('success'); pointsEarned = 10; let bonusText = ""; if (GameState.timer >= 20) { pointsEarned += 5; bonusText = " (+5 SPEED)"; }
+                    AudioSys.playCorrect(); dz.classList.add('success'); 
+                    
+                    let baseScore = 10;
+                    let speedScore = (GameState.timer >= 20) ? 5 : 0;
+                    const comboBonuses = [0, 3, 5, 7, 10];
+                    let comboBonus = comboBonuses[Math.min(GameState.combo, 4)];
+                    GameState.combo++; // เพิ่มคอมโบสำหรับข้อถัดไป
+                    
+                    pointsEarned = baseScore + speedScore + comboBonus;
+                    
+                    let bonusText = ""; 
+                    if (speedScore > 0) bonusText += " <span class='text-fuchsia-300'>(+5 SPEED)</span>"; 
+                    if (comboBonus > 0) bonusText += ` <span class='text-amber-400'>(+${comboBonus} COMBO)</span>`;
+
                     document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
                     document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-green-400"; document.getElementById('question-result-text').innerText = "CORRECT";
-                    document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-cyan-400 mt-2"; document.getElementById('question-result-pts').innerText = `+${pointsEarned} POINTS${bonusText}`;
+                    document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-cyan-400 mt-2"; 
+                    document.getElementById('question-result-pts').innerHTML = `+${pointsEarned} POINTS${bonusText}`;
                     GameState.score += pointsEarned; GameState.stats.correct++;
                 } else {
+                    GameState.combo = 0; // รีเซ็ตคอมโบ
                     AudioSys.playError(); dz.classList.add('error'); pointsEarned = -5;
                     document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
                     document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "INCORRECT";
@@ -944,12 +958,13 @@
                 this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
             },
             handleTimeOut() {
-                GameState.isAnswering = true; this.clearTimer(); AudioSys.playError(); const q = GameState.activeQuestions[GameState.qIndex]; const timeTaken = 30; GameState.stats.timeUsed += timeTaken;
+                GameState.isAnswering = true; this.clearTimer(); AudioSys.playError(); GameState.combo = 0; // รีเซ็ตคอมโบ
+                const q = GameState.activeQuestions[GameState.qIndex]; const timeTaken = 30; GameState.stats.timeUsed += timeTaken;
                 const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
                 dz.classList.add('error'); overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
                 document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-clock text-red-500"></i>';
                 document.getElementById('question-result-text').className = "text-2xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "TIME OUT";
-                document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-1 ENERGY";
+                document.getElementById('question-result-pts').className = "text-sm sm:text-xl font-bold font-sci tracking-widest text-slate-400 mt-2"; document.getElementById('question-result-pts').innerText = "0 POINTS / -1 ENERGY";
                 GameState.energy--; GameState.stats.wrong++;
                 GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: "TIMEOUT", correctAnswer: q.c[q.a], result: "wrong", score: 0, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
                 this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
